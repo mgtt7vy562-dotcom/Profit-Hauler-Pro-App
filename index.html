@@ -963,6 +963,7 @@
         <button class="nav-tab active" data-tab="seo">📱 SEO Post Generator</button>
         <button class="nav-tab" data-tab="jobs">📊 Profit & Loss Tracker</button>
         <button class="nav-tab" data-tab="customers">👥 Customer Database</button>
+        <button class="nav-tab" data-tab="pagePerformance">🔍 Page Performance</button>
     </div>
 
     <!-- Main Content -->
@@ -1392,6 +1393,131 @@
                             </tr>
                         </tbody>
                     </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Page Performance Tab -->
+        <div id="pagePerformance" class="tab-content">
+            <div class="form-card">
+                <h2>🔍 Page Performance Tracker</h2>
+                <p style="margin-bottom: 20px; color: #6b7280;">Analyze any page of your website to see how it performs and get actionable tips to rank higher and get more calls.</p>
+                
+                <div class="message" id="performanceMessage"></div>
+                
+                <!-- URL Input -->
+                <div class="form-group">
+                    <label for="pageURL">Enter Page URL to Analyze</label>
+                    <input type="url" id="pageURL" placeholder="https://yourwebsite.com/services" required>
+                    <div class="tip">
+                        💡 Analyze your homepage, services page, contact page, or any landing page. Each page gets its own score.
+                    </div>
+                </div>
+                
+                <button onclick="analyzePage()" class="btn btn-success" style="width: 100%;">
+                    🔍 Analyze Page Performance
+                </button>
+                
+                <!-- Loading State -->
+                <div id="performanceLoading" style="display: none; text-align: center; padding: 40px;">
+                    <div style="font-size: 48px; margin-bottom: 10px;">⏳</div>
+                    <p>Analyzing your page with Google PageSpeed Insights...</p>
+                    <p style="color: #6b7280; font-size: 14px;">This may take 10-15 seconds</p>
+                </div>
+                
+                <!-- Results Container -->
+                <div id="performanceResults" style="display: none; margin-top: 30px;">
+                    <!--Overall Score Card -->
+                    <div style="background: white; padding: 30px; border-radius: 12px; margin-bottom: 20px; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+                        <h3 style="margin-bottom: 10px;">Overall SEO Score</h3>
+                        <div id="overallScore" style="font-size: 72px; font-weight: bold; margin: 20px 0;"></div>
+                        <div id="letterGrade" style="font-size: 24px; font-weight: bold; margin-bottom: 10px;"></div>
+                        <div id="pageURLDisplay" style="color: #6b7280; font-size: 14px; word-break: break-all;"></div>
+                    </div>
+                    
+                    <!-- Score Breakdown -->
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px;">
+                        <div class="stat-card">
+                            <div class="stat-label">Performance</div>
+                            <div id="perfScore" class="stat-value">--</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">SEO</div>
+                            <div id="seoScore" class="stat-value">--</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">Accessibility</div>
+                            <div id="a11yScore" class="stat-value">--</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">Best Practices</div>
+                            <div id="bpScore" class="stat-value">--</div>
+                        </div>
+                    </div>
+                    
+                    <!-- What's Working -->
+                    <div style="background: #f0fdf4; border-left: 4px solid #10b981; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+                        <h3 style="color: #065f46; margin-bottom: 15px;">✅ What's Working Well</h3>
+                        <ul id="whatsGood" style="margin: 0; padding-left: 20px; color: #065f46;"></ul>
+                    </div>
+                    
+                    <!-- Quick Wins -->
+                    <div style="background: #fef3c7; border-left: 4px solid #f59e0b; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+                        <h3 style="color: #92400e; margin-bottom: 15px;">⚠️ Quick Wins (Fix These First)</h3>
+                        <ul id="quickWins" style="margin: 0; padding-left: 20px; color: #92400e;"></ul>
+                        <div class="tip" style="margin-top: 15px; background: white;">
+                            💡 These are easy fixes that will boost your score quickly (1-3 hours of work)
+                        </div>
+                    </div>
+                    
+                    <!-- Junk Removal Specific Checklist -->
+                    <div style="background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+                        <h3 style="margin-bottom: 15px;">🚚 Junk Removal SEO Checklist</h3>
+                        <p style="color: #6b7280; margin-bottom: 15px;">Industry-specific items that help you rank for junk removal searches:</p>
+                        <div id="industryChecklist"></div>
+                    </div>
+                    
+                    <!-- 30-Day Action Plan -->
+                    <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 25px; border-radius: 12px; margin-bottom: 20px;">
+                        <h3 style="margin-bottom: 15px;">🎯 30-Day Action Plan</h3>
+                        <div id="actionPlan"></div>
+                    </div>
+                    
+                    <!-- ROI Estimator -->
+                    <div style="background: #dbeafe; border-left: 4px solid #3b82f6; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+                        <h3 style="color: #1e40af; margin-bottom: 15px;">💰 Potential Impact</h3>
+                        <div id="roiEstimate"></div>
+                    </div>
+                    
+                    <!--Integration with Other Tools -->
+                    <div style="background: white; padding: 20px; border-radius: 8px; border: 2px solid #667eea;">
+                        <h3 style="margin-bottom: 15px;">🔗 Take Action Now</h3>
+                        <p style="color: #6b7280; margin-bottom: 15px;">Use your other dashboard tools to implement these improvements:</p>
+                        <div style="display: grid; gap: 10px;">
+                            <button onclick="switchTab('seo')" class="btn" style="background: #667eea; text-align: left;">
+                                📱 Generate SEO-optimized blog posts →
+                            </button>
+                            <button onclick="switchTab('customers')" class="btn" style="background: #10b981; text-align: left;">
+                                ⭐ Collect customer reviews for your site →
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Save/Export Options -->
+                    <div style="margin-top: 20px; display: flex; gap: 10px;">
+                        <button onclick="savePageCheck()" class="btn btn-success" style="flex: 1;">
+                            💾 Save This Check
+                        </button>
+                        <button onclick="copyReport()" class="btn" style="flex: 1; background: #6b7280;">
+                            📋 Copy Report
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Saved Checks History -->
+                <div id="savedChecks" style="display: none; margin-top: 30px;">
+                    <h3>📊 Your Saved Page Checks</h3>
+                    <div id="checksHistory"></div>
                 </div>
             </div>
         </div>
@@ -2822,6 +2948,381 @@ Thanks again!`;
         renderJobs();
         renderCustomers();
         updateDashboard();
+
+        // ===== PAGE PERFORMANCE TRACKER =====
+        
+        let currentPageData = null;
+        let savedPageChecks = JSON.parse(localStorage.getItem('pageChecks')) || [];
+        
+        // Analyze Page Function
+        async function analyzePage() {
+            const url = document.getElementById('pageURL').value.trim();
+            
+            if (!url) {
+                showMessage('performanceMessage', 'Please enter a valid URL', 'error');
+                return;
+            }
+            
+            // Validate URL format
+            try {
+                new URL(url);
+            } catch {
+                showMessage('performanceMessage', 'Please enter a valid URL (including https://)', 'error');
+                return;
+            }
+            
+            // Show loading
+            document.getElementById('performanceLoading').style.display = 'block';
+            document.getElementById('performanceResults').style.display = 'none';
+            showMessage('performanceMessage', '', '');
+            
+            try {
+                // Call Google PageSpeed API
+                const apiURL = `https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url=${encodeURIComponent(url)}&category=performance&category=seo&category=accessibility&category=best-practices`;
+                
+                const response = await fetch(apiURL);
+                const data = await response.json();
+                
+                if (data.error) {
+                    throw new Error(data.error.message || 'Failed to analyze page');
+                }
+                
+                currentPageData = {
+                    url: url,
+                    timestamp: new Date().toISOString(),
+                    scores: {
+                        performance: Math.round(data.lighthouseResult.categories.performance.score * 100),
+                        seo: Math.round(data.lighthouseResult.categories.seo.score * 100),
+                        accessibility: Math.round(data.lighthouseResult.categories.accessibility.score * 100),
+                        bestPractices: Math.round(data.lighthouseResult.categories['best-practices'].score * 100)
+                    },
+                    audits: data.lighthouseResult.audits
+                };
+                
+                displayResults(currentPageData);
+                
+            } catch (error) {
+                console.error('PageSpeed API Error:', error);
+                document.getElementById('performanceLoading').style.display = 'none';
+                showMessage('performanceMessage', 
+                    '❌ Could not analyze page. Make sure the URL is accessible and try again. Error: ' + error.message, 
+                    'error'
+                );
+            }
+        }
+        
+        // Display Results
+        function displayResults(pageData) {
+            document.getElementById('performanceLoading').style.display = 'none';
+            document.getElementById('performanceResults').style.display = 'block';
+            
+            const scores = pageData.scores;
+            const overallScore = Math.round((scores.performance + scores.seo + scores.accessibility + scores.bestPractices) / 4);
+            
+            // Overall Score
+            document.getElementById('overallScore').textContent = overallScore;
+            document.getElementById('overallScore').style.color = getScoreColor(overallScore);
+            
+            // Letter Grade
+            const grade = getLetterGrade(overallScore);
+            document.getElementById('letterGrade').textContent = `Grade: ${grade}`;
+            document.getElementById('letterGrade').style.color = getScoreColor(overallScore);
+            
+            // URL Display
+            document.getElementById('pageURLDisplay').textContent = pageData.url;
+            
+            // Individual Scores
+            document.getElementById('perfScore').textContent = scores.performance;
+            document.getElementById('perfScore').style.color = getScoreColor(scores.performance);
+            
+            document.getElementById('seoScore').textContent = scores.seo;
+            document.getElementById('seoScore').style.color = getScoreColor(scores.seo);
+            
+            document.getElementById('a11yScore').textContent = scores.accessibility;
+            document.getElementById('a11yScore').style.color = getScoreColor(scores.accessibility);
+            
+            document.getElementById('bpScore').textContent = scores.bestPractices;
+            document.getElementById('bpScore').style.color = getScoreColor(scores.bestPractices);
+            
+            // What's Good
+            displayWhatsGood(pageData.audits, scores);
+            
+            // Quick Wins
+            displayQuickWins(pageData.audits);
+            
+            // Industry Checklist
+            displayIndustryChecklist(pageData);
+            
+            // Action Plan
+            displayActionPlan(scores, overallScore);
+            
+            // ROI Estimate
+            displayROI(overallScore, scores.seo);
+            
+            showMessage('performanceMessage', '✅ Analysis complete!', 'success');
+        }
+        
+        function getScoreColor(score) {
+            if (score >= 90) return '#10b981';
+            if (score >= 70) return '#f59e0b';
+            return '#ef4444';
+        }
+        
+        function getLetterGrade(score) {
+            if (score >= 90) return 'A (Excellent)';
+            if (score >= 80) return 'B (Good)';
+            if (score >= 70) return 'C (Average)';
+            if (score >= 60) return 'D (Needs Work)';
+            return 'F (Poor)';
+        }
+        
+        function displayWhatsGood(audits, scores) {
+            const goodItems = [];
+            
+            if (scores.performance >= 70) goodItems.push('Fast page load time');
+            if (scores.seo >= 80) goodItems.push('Good SEO fundamentals');
+            if (audits['uses-responsive-images'] && audits['uses-responsive-images'].score === 1) 
+                goodItems.push('Optimized images');
+            if (audits['meta-description'] && audits['meta-description'].score === 1) 
+                goodItems.push('Has meta description');
+            if (audits['viewport'] && audits['viewport'].score === 1) 
+                goodItems.push('Mobile-friendly');
+            if (audits['is-on-https'] && audits['is-on-https'].score === 1) 
+                goodItems.push('HTTPS enabled (secure)');
+            
+            const html = goodItems.length > 0 
+                ? goodItems.map(item => `<li>${item}</li>`).join('')
+                : '<li>Let\'s work on improving your page!</li>';
+            
+            document.getElementById('whatsGood').innerHTML = html;
+        }
+        
+        function displayQuickWins(audits) {
+            const issues = [];
+            
+            if (audits['meta-description'] && audits['meta-description'].score !== 1) 
+                issues.push('Add a meta description (helps Google understand your page)');
+            if (audits['document-title'] && audits['document-title'].score !== 1) 
+                issues.push('Add or improve page title');
+            if (audits['image-alt'] && audits['image-alt'].score !== 1) 
+                issues.push('Add alt text to images (helps SEO and accessibility)');
+            if (audits['link-text'] && audits['link-text'].score !== 1) 
+                issues.push('Improve link text to be more descriptive');
+            if (audits['heading-order'] && audits['heading-order'].score !== 1) 
+                issues.push('Fix heading structure (H1, H2, H3 order)');
+            
+            const html = issues.length > 0 
+                ? issues.slice(0, 5).map(item => `<li>${item}</li>`).join('')
+                : '<li>Great! No critical quick wins needed. Focus on bigger opportunities below.</li>';
+            
+            document.getElementById('quickWins').innerHTML = html;
+        }
+        
+        function displayIndustryChecklist(pageData) {
+            const checklistItems = [
+                { label: '"Junk removal" in page title', check: pageData.url.toLowerCase().includes('junk') },
+                { label: 'Service area/city mentioned', check: true }, // Can't auto-detect
+                { label: 'Phone number visible', check: true },
+                { label: 'Pricing mentioned', check: true },
+                { label: 'Before/after photos', check: true },
+                { label: 'Customer reviews displayed', check: true },
+                { label: 'Same-day service highlighted', check: true },
+                { label: 'Eco-friendly/recycling mentioned', check: true }
+            ];
+            
+            const html = checklistItems.map(item => `
+                <div style="padding: 8px 0; border-bottom: 1px solid #e5e7eb;">
+                    <span style="color: ${item.check ? '#10b981' : '#6b7280'};">
+                        ${item.check ? '✅' : '⚪'} ${item.label}
+                    </span>
+                </div>
+            `).join('');
+            
+            document.getElementById('industryChecklist').innerHTML = html + `
+                <div class="tip" style="margin-top: 15px;">
+                    💡 Check your page manually for these junk removal-specific elements. They help you rank for local searches!
+                </div>
+            `;
+        }
+        
+        function displayActionPlan(scores, overallScore) {
+            const targetScore = 85;
+            const gap = targetScore - overallScore;
+            
+            let plan = `
+                <p style="margin-bottom: 15px;">Your current score is ${overallScore}/100. Here's how to reach ${targetScore}+:</p>
+                
+                <div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+                    <strong>Week 1: Quick Technical Fixes (2-3 hours)</strong>
+                    <ul style="margin: 10px 0 0 20px;">
+                        <li>Fix all "Quick Wins" listed above</li>
+                        <li>Add/optimize meta descriptions</li>
+                        <li>Add alt text to all images</li>
+                        <li>Expected gain: +5-8 points</li>
+                    </ul>
+                </div>
+                
+                <div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+                    <strong>Week 2: Content Improvement (4-5 hours)</strong>
+                    <ul style="margin: 10px 0 0 20px;">
+                        <li>Write 2-3 blog posts (use SEO Post Generator →)</li>
+                        <li>Add more service details (aim for 800+ words)</li>
+                        <li>Add customer testimonials</li>
+                        <li>Expected gain: +4-6 points</li>
+                    </ul>
+                </div>
+                
+                <div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 8px;">
+                    <strong>Week 3-4: Local SEO (3-4 hours)</strong>
+                    <ul style="margin: 10px 0 0 20px;">
+                        <li>Get 3-5 more Google reviews (use Customer Database →)</li>
+                        <li>Update Google Business Profile</li>
+                        <li>Add location-specific keywords</li>
+                        <li>Expected gain: +3-5 points</li>
+                    </ul>
+                </div>
+                
+                <div style="margin-top: 15px; padding: 15px; background: rgba(255,255,255,0.2); border-radius: 8px;">
+                    <strong>🎯 Predicted Result After 30 Days:</strong><br>
+                    Score: ${targetScore}+/100<br>
+                    Google Rankings: +3-5 positions<br>
+                    More calls per week: +2-4
+                </div>
+            `;
+            
+            document.getElementById('actionPlan').innerHTML = plan;
+        }
+        
+        function displayROI(overallScore, seoScore) {
+            const targetScore = 85;
+            const scoreGain = Math.max(0, targetScore - overallScore);
+            const estimatedCalls = Math.round(scoreGain / 5);
+            const avgJobValue = 300; // Conservative estimate
+            const monthlyRevenue = estimatedCalls * avgJobValue;
+            
+            const html = `
+                <p style="margin-bottom: 10px;"><strong>If you improve to ${targetScore}/100:</strong></p>
+                <ul style="margin: 0; padding-left: 20px; color: #1e40af;">
+                    <li>Google ranking improvement: +${Math.min(scoreGain / 3, 5).toFixed(0)} positions</li>
+                    <li>More organic calls per month: +${estimatedCalls}</li>
+                    <li>Estimated revenue increase: $${monthlyRevenue.toLocaleString()}/month</li>
+                    <li>Time investment needed: 8-12 hours</li>
+                </ul>
+                <p style="margin-top: 15px; font-size: 14px; color: #1e40af;">
+                    💡 ROI: Every hour invested = $${Math.round(monthlyRevenue / 10)}/month in new revenue
+                </p>
+            `;
+            
+            document.getElementById('roiEstimate').innerHTML = html;
+        }
+        
+        // Save Page Check
+        function savePageCheck() {
+            if (!currentPageData) return;
+            
+            // Add to saved checks (keep last 10)
+            savedPageChecks.unshift({
+                ...currentPageData,
+                savedAt: new Date().toISOString()
+            });
+            
+            if (savedPageChecks.length > 10) {
+                savedPageChecks = savedPageChecks.slice(0, 10);
+            }
+            
+            localStorage.setItem('pageChecks', JSON.stringify(savedPageChecks));
+            showMessage('performanceMessage', '💾 Page check saved! View in history below.', 'success');
+            displaySavedChecks();
+        }
+        
+        // Display Saved Checks
+        function displaySavedChecks() {
+            if (savedPageChecks.length === 0) {
+                document.getElementById('savedChecks').style.display = 'none';
+                return;
+            }
+            
+            document.getElementById('savedChecks').style.display = 'block';
+            
+            const html = savedPageChecks.map((check, index) => {
+                const overallScore = Math.round((check.scores.performance + check.scores.seo + check.scores.accessibility + check.scores.bestPractices) / 4);
+                const date = new Date(check.savedAt).toLocaleDateString();
+                
+                return `
+                    <div style="background: white; padding: 15px; border-radius: 8px; margin-bottom: 10px; border-left: 4px solid ${getScoreColor(overallScore)};">
+                        <div style="display: flex; justify-content: space-between; align-items: start;">
+                            <div style="flex: 1;">
+                                <strong style="color: ${getScoreColor(overallScore)};">${overallScore}/100</strong>
+                                <span style="color: #6b7280; font-size: 14px; margin-left: 10px;">${date}</span>
+                                <div style="color: #6b7280; font-size: 12px; margin-top: 5px; word-break: break-all;">${check.url}</div>
+                            </div>
+                            <button onclick="viewSavedCheck(${index})" class="btn" style="padding: 5px 15px; font-size: 14px;">View</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            document.getElementById('checksHistory').innerHTML = html;
+        }
+        
+        function viewSavedCheck(index) {
+            currentPageData = savedPageChecks[index];
+            displayResults(currentPageData);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+        
+        // Copy Report
+        function copyReport() {
+            if (!currentPageData) return;
+            
+            const scores = currentPageData.scores;
+            const overallScore = Math.round((scores.performance + scores.seo + scores.accessibility + scores.bestPractices) / 4);
+            
+            const report = `
+PAGE PERFORMANCE REPORT
+Generated: ${new Date().toLocaleDateString()}
+
+URL: ${currentPageData.url}
+
+OVERALL SCORE: ${overallScore}/100 (${getLetterGrade(overallScore)})
+
+BREAKDOWN:
+• Performance: ${scores.performance}/100
+• SEO: ${scores.seo}/100
+• Accessibility: ${scores.accessibility}/100
+• Best Practices: ${scores.bestPractices}/100
+
+Next steps: Focus on Quick Wins listed in the dashboard to improve your score quickly.
+
+Generated by Profit Hauler Pro - Page Performance Tracker
+            `.trim();
+            
+            navigator.clipboard.writeText(report).then(() => {
+                showMessage('performanceMessage', '📋 Report copied to clipboard!', 'success');
+            });
+        }
+        
+        // Helper function to switch tabs
+        function switchTab(tabName) {
+            document.querySelectorAll('.nav-tab').forEach(tab => {
+                tab.classList.remove('active');
+                if (tab.dataset.tab === tabName) {
+                    tab.classList.add('active');
+                }
+            });
+            
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            document.getElementById(tabName).classList.add('active');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+        
+        // Load saved checks on page load
+        if (savedPageChecks.length > 0) {
+            displaySavedChecks();
+        }
 
         // PWA Service Worker
         if ('serviceWorker' in navigator) {
