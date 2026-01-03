@@ -1,0 +1,2820 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Secure business management dashboard for junk removal companies">
+    <title>Junk Removal Business Dashboard - Secure</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#2563eb">
+    <link rel="apple-touch-icon" href="icon-192.png">
+    
+    <!-- Security Headers -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' https:; font-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self';">
+    <meta http-equiv="X-Content-Type-Options" content="nosniff">
+    <meta http-equiv="X-Frame-Options" content="DENY">
+    <meta name="referrer" content="no-referrer">
+    <meta http-equiv="Permissions-Policy" content="geolocation=(), microphone=(), camera=()">
+    
+    <!-- CryptoJS for Encryption -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js" integrity="sha512-E8QSvWZ0eCLGk4km3hxSsNs8n9SBpGCz1PVzRrPxRTFZr0YM3iFLfPCl0yMXzLtKhqOzD/8DPQgJdCwZKxWzDQ==" crossorigin="anonymous"></script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #f3f4f6;
+            min-height: 100vh;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .header h1 {
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 14px;
+        }
+
+        /* Dashboard Stats */
+        .dashboard-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            padding: 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            border-left: 4px solid #667eea;
+        }
+
+        .stat-card.profit {
+            border-left-color: #10b981;
+        }
+
+        .stat-card.loss {
+            border-left-color: #ef4444;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #6b7280;
+            text-transform: uppercase;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .stat-value {
+            font-size: 28px;
+            font-weight: bold;
+            color: #1f2937;
+        }
+
+        .stat-value.profit {
+            color: #10b981;
+        }
+
+        .stat-value.loss {
+            color: #ef4444;
+        }
+
+        /* Navigation Tabs */
+        .nav-tabs {
+            background: white;
+            display: flex;
+            gap: 0;
+            padding: 0 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            overflow-x: auto;
+        }
+
+        .nav-tab {
+            padding: 16px 24px;
+            background: none;
+            border: none;
+            color: #6b7280;
+            font-weight: 600;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+            white-space: nowrap;
+            font-size: 15px;
+        }
+
+        .nav-tab:hover {
+            color: #667eea;
+            background: #f9fafb;
+        }
+
+        .nav-tab.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+        }
+
+        /* Content Area */
+        .content {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Form Styles */
+        .form-card {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+
+        .form-card h2 {
+            margin-bottom: 20px;
+            color: #1f2937;
+            font-size: 20px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 0;
+        }
+
+        .form-group.full-width {
+            grid-column: 1 / -1;
+        }
+
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 6px;
+            color: #374151;
+            font-size: 14px;
+        }
+
+        input[type="text"],
+        input[type="email"],
+        input[type="tel"],
+        input[type="number"],
+        input[type="url"],
+        input[type="date"],
+        select,
+        textarea {
+            width: 100%;
+            padding: 10px 12px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 15px;
+            transition: border-color 0.3s;
+            font-family: inherit;
+        }
+
+        input:focus,
+        select:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn-secondary {
+            background: white;
+            color: #667eea;
+            border: 2px solid #667eea;
+        }
+
+        .btn-success {
+            background: #10b981;
+        }
+
+        .btn-success:hover {
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+        }
+
+        .btn-danger {
+            background: #ef4444;
+        }
+
+        .btn-small {
+            padding: 8px 16px;
+            font-size: 13px;
+        }
+
+        /* Table Styles */
+        .table-container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .table-header {
+            padding: 20px;
+            border-bottom: 1px solid #e5e7eb;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .table-header h2 {
+            color: #1f2937;
+            font-size: 18px;
+        }
+
+        .table-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead {
+            background: #f9fafb;
+        }
+
+        th {
+            padding: 12px;
+            text-align: left;
+            font-size: 12px;
+            font-weight: 600;
+            color: #6b7280;
+            text-transform: uppercase;
+            border-bottom: 2px solid #e5e7eb;
+        }
+
+        td {
+            padding: 12px;
+            border-bottom: 1px solid #f3f4f6;
+            font-size: 14px;
+            color: #374151;
+        }
+
+        tbody tr:hover {
+            background: #f9fafb;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+        }
+
+        .action-btn {
+            padding: 6px 12px;
+            font-size: 12px;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .action-btn.edit {
+            background: #3b82f6;
+            color: white;
+        }
+
+        .action-btn.delete {
+            background: #ef4444;
+            color: white;
+        }
+
+        .action-btn.review {
+            background: #10b981;
+            color: white;
+        }
+
+        .action-btn:hover {
+            transform: scale(1.05);
+        }
+
+        /* Photo Upload */
+        .photo-upload {
+            border: 2px dashed #e5e7eb;
+            border-radius: 10px;
+            padding: 30px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: #f9fafb;
+        }
+
+        .photo-upload:hover {
+            border-color: #667eea;
+            background: #f3f4f6;
+        }
+
+        .photo-upload.has-image {
+            padding: 0;
+            border: none;
+        }
+
+        .photo-preview {
+            width: 100%;
+            max-width: 300px;
+            border-radius: 10px;
+            display: none;
+        }
+
+        .photo-preview.show {
+            display: block;
+            margin: 0 auto;
+        }
+
+        .upload-icon {
+            font-size: 48px;
+            color: #9ca3af;
+            margin-bottom: 10px;
+        }
+
+        .upload-text {
+            color: #6b7280;
+            font-size: 14px;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            max-width: 600px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            padding: 30px;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-header h2 {
+            font-size: 20px;
+            color: #1f2937;
+        }
+
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 28px;
+            color: #6b7280;
+            cursor: pointer;
+            line-height: 1;
+        }
+
+        .close-modal:hover {
+            color: #ef4444;
+        }
+
+        /* Success/Error Messages */
+        .message {
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .message.show {
+            display: block;
+        }
+
+        .message.success {
+            background: #d1fae5;
+            color: #065f46;
+            border-left: 4px solid #10b981;
+        }
+
+        .message.error {
+            background: #fee2e2;
+            color: #991b1b;
+            border-left: 4px solid #ef4444;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .dashboard-stats {
+                grid-template-columns: 1fr;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            table {
+                font-size: 12px;
+            }
+
+            th, td {
+                padding: 8px;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+            }
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #6b7280;
+        }
+
+        .empty-state-icon {
+            font-size: 64px;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+
+        .calculated-field {
+            background: #f9fafb;
+            font-weight: 600;
+            color: #1f2937;
+        }
+
+        .profit-positive {
+            color: #10b981;
+            font-weight: 600;
+        }
+
+        .profit-negative {
+            color: #ef4444;
+            font-weight: 600;
+        }
+
+        .filter-bar {
+            padding: 20px;
+            background: white;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .filter-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            align-items: end;
+        }
+
+        .tip {
+            background: #eff6ff;
+            border-left: 4px solid #3b82f6;
+            padding: 12px;
+            margin-top: 10px;
+            border-radius: 4px;
+            font-size: 13px;
+            color: #1e40af;
+        }
+
+        /* Security & Legal Styles */
+        .security-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            z-index: 10000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .security-overlay.hidden {
+            display: none;
+        }
+
+        .security-modal {
+            background: white;
+            border-radius: 16px;
+            max-width: 700px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+        }
+
+        .security-modal h2 {
+            color: #dc2626;
+            font-size: 24px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .security-modal h3 {
+            color: #374151;
+            font-size: 18px;
+            margin: 20px 0 10px;
+        }
+
+        .security-modal ul {
+            margin: 15px 0 15px 20px;
+            line-height: 1.8;
+            color: #4b5563;
+        }
+
+        .security-modal li {
+            margin-bottom: 8px;
+        }
+
+        .legal-disclaimer {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+
+        .legal-disclaimer strong {
+            color: #856404;
+        }
+
+        .password-setup {
+            background: #f9fafb;
+            padding: 30px;
+            border-radius: 12px;
+            margin: 20px 0;
+        }
+
+        .password-strength {
+            height: 4px;
+            background: #e5e7eb;
+            border-radius: 2px;
+            margin-top: 8px;
+            overflow: hidden;
+        }
+
+        .password-strength-bar {
+            height: 100%;
+            transition: all 0.3s;
+            width: 0%;
+        }
+
+        .password-strength-bar.weak {
+            width: 33%;
+            background: #ef4444;
+        }
+
+        .password-strength-bar.medium {
+            width: 66%;
+            background: #f59e0b;
+        }
+
+        .password-strength-bar.strong {
+            width: 100%;
+            background: #10b981;
+        }
+
+        .security-feature {
+            background: #f0fdf4;
+            border: 2px solid #86efac;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .security-feature-icon {
+            font-size: 24px;
+        }
+
+        .lock-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            z-index: 9999;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .lock-screen.active {
+            display: flex;
+        }
+
+        .lock-screen-content {
+            background: white;
+            padding: 40px;
+            border-radius: 16px;
+            max-width: 400px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            text-align: center;
+        }
+
+        .lock-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+        }
+
+        .auto-backup-indicator {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: white;
+            padding: 12px 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            display: none;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            z-index: 1000;
+        }
+
+        .auto-backup-indicator.show {
+            display: flex;
+        }
+
+        .security-badge {
+            display: inline-block;
+            background: #10b981;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            margin-left: 8px;
+        }
+
+        /* PII Masking */
+        .pii-masked {
+            filter: blur(4px);
+            transition: filter 0.3s;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .pii-masked:hover {
+            filter: blur(0);
+        }
+
+        .pii-masked.revealed {
+            filter: blur(0);
+        }
+
+        .privacy-toggle {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            background: #f0fdf4;
+            border: 2px solid #86efac;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .privacy-toggle:hover {
+            background: #dcfce7;
+        }
+
+        .privacy-toggle input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        .data-minimization-tip {
+            background: #fffbeb;
+            border-left: 4px solid #f59e0b;
+            padding: 12px;
+            border-radius: 4px;
+            font-size: 13px;
+            color: #92400e;
+            margin-top: 10px;
+        }
+
+        .upgrade-banner {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .upgrade-banner h3 {
+            margin-bottom: 10px;
+        }
+
+        .upgrade-banner p {
+            opacity: 0.95;
+            margin-bottom: 15px;
+        }
+
+        @media (max-width: 768px) {
+            .security-modal {
+                padding: 20px;
+            }
+            
+            .security-modal h2 {
+                font-size: 20px;
+            }
+
+            .pii-masked {
+                filter: blur(3px);
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Security & Legal Overlay (Shows on first visit) -->
+    <div id="securityOverlay" class="security-overlay">
+        <div class="security-modal">
+            <h2>🔒 Security & Legal Agreement</h2>
+            
+            <div class="legal-disclaimer">
+                <h3>⚠️ IMPORTANT: Read Before Using This Dashboard</h3>
+                
+                <p><strong>By using this dashboard, you acknowledge and agree:</strong></p>
+                
+                <ul>
+                    <li><strong>Customer Consent:</strong> You are responsible for obtaining customer consent before collecting their data</li>
+                    <li><strong>Legal Compliance:</strong> You must comply with GDPR, CCPA, CAN-SPAM, and all applicable privacy laws</li>
+                    <li><strong>Data Security:</strong> You are responsible for securing customer data appropriately</li>
+                    <li><strong>Data Rights:</strong> You must delete customer data upon request within 30 days</li>
+                    <li><strong>No Data Selling:</strong> You will not share or sell customer data to third parties</li>
+                    <li><strong>Local Storage:</strong> Data is stored locally on YOUR device - we do NOT have access to it</li>
+                    <li><strong>Backup Responsibility:</strong> You are responsible for backing up your data regularly</li>
+                    <li><strong>No Liability:</strong> We are NOT liable for data loss, breaches, or legal violations</li>
+                </ul>
+                
+                <h3>📧 Review Requests:</h3>
+                <ul>
+                    <li>Only send review requests to customers who have explicitly consented</li>
+                    <li>Always include an opt-out option in every message</li>
+                    <li>Honor opt-out requests within 10 days</li>
+                    <li>Do not incentivize or gate reviews</li>
+                </ul>
+                
+                <h3>🔐 Your Data Security Features:</h3>
+                <ul>
+                    <li>✅ Password protection (you'll set this next)</li>
+                    <li>✅ AES-256 encryption for all stored data</li>
+                    <li>✅ Auto-lock after 30 minutes of inactivity</li>
+                    <li>✅ Secure export warnings</li>
+                    <li>✅ Automatic encrypted backups</li>
+                    <li>✅ PII masking in tables (hover to reveal)</li>
+                </ul>
+
+                <div class="data-minimization-tip">
+                    <strong>💡 Data Minimization Best Practice:</strong><br>
+                    Only collect data you actually need. If you don't need full addresses, 
+                    consider storing just city/zip. Less data = less risk = easier compliance.
+                </div>
+            </div>
+
+            <div class="password-setup">
+                <h3>🔑 Set Your Master Password</h3>
+                <p style="color: #6b7280; margin-bottom: 15px;">
+                    This password encrypts ALL your customer data. Choose a strong password and remember it - 
+                    <strong style="color: #dc2626;">if you forget it, your data cannot be recovered.</strong>
+                </p>
+                
+                <div class="form-group">
+                    <label for="masterPassword">Master Password *</label>
+                    <input type="password" id="masterPassword" placeholder="Min. 8 characters" required 
+                           style="width: 100%;">
+                    <div class="password-strength">
+                        <div id="passwordStrengthBar" class="password-strength-bar"></div>
+                    </div>
+                    <small id="passwordStrengthText" style="color: #6b7280; margin-top: 5px; display: block;"></small>
+                </div>
+                
+                <div class="form-group">
+                    <label for="masterPasswordConfirm">Confirm Password *</label>
+                    <input type="password" id="masterPasswordConfirm" placeholder="Re-enter password" required
+                           style="width: 100%;">
+                </div>
+                
+                <div class="tip">
+                    💡 <strong>Password Tips:</strong> Use at least 8 characters with uppercase, lowercase, 
+                    numbers, and symbols. Store it in a password manager.
+                </div>
+            </div>
+
+            <label style="display: flex; align-items: center; gap: 10px; margin: 20px 0; cursor: pointer;">
+                <input type="checkbox" id="legalAccept" required style="width: 20px; height: 20px;">
+                <span style="font-weight: 600; color: #374151;">
+                    I have read and agree to the Terms of Service and understand my legal responsibilities
+                </span>
+            </label>
+
+            <button class="btn" onclick="setupSecurity()" style="width: 100%; margin-top: 10px;">
+                🔒 Set Password & Continue
+            </button>
+            
+            <p style="margin-top: 20px; text-align: center; font-size: 13px; color: #6b7280;">
+                <a href="#" onclick="showTerms(); return false;" style="color: #667eea;">Terms of Service</a> | 
+                <a href="#" onclick="showPrivacy(); return false;" style="color: #667eea;">Privacy Policy</a>
+            </p>
+        </div>
+    </div>
+
+    <!-- Lock Screen (Shows when app is locked) -->
+    <div id="lockScreen" class="lock-screen">
+        <div class="lock-screen-content">
+            <div class="lock-icon">🔒</div>
+            <h2 style="margin-bottom: 10px;">Dashboard Locked</h2>
+            <p style="color: #6b7280; margin-bottom: 20px;">Enter your password to unlock</p>
+            
+            <div class="form-group">
+                <input type="password" id="unlockPassword" placeholder="Enter password" 
+                       style="width: 100%; text-align: center; font-size: 18px;"
+                       onkeypress="if(event.key==='Enter') unlockDashboard()">
+            </div>
+            
+            <div id="unlockError" class="message error" style="margin-bottom: 15px;"></div>
+            
+            <button class="btn" onclick="unlockDashboard()" style="width: 100%; margin-bottom: 10px;">
+                🔓 Unlock
+            </button>
+            
+            <button class="btn btn-danger" onclick="resetAllData()" style="width: 100%;">
+                🗑️ Forgot Password? Reset All Data
+            </button>
+            
+            <p style="margin-top: 20px; font-size: 12px; color: #6b7280;">
+                Auto-locked after 30 minutes of inactivity for your security
+            </p>
+        </div>
+    </div>
+
+    <!-- Auto-Backup Indicator -->
+    <div id="autoBackupIndicator" class="auto-backup-indicator">
+        <span>💾</span>
+        <span>Data backed up</span>
+    </div>
+
+    <div class="header">
+        <h1>🚚 Junk Removal Business Dashboard <span class="security-badge">SECURED</span></h1>
+        <p>Track jobs, customers, and profits all in one place</p>
+    </div>
+
+    <!-- Dashboard Stats -->
+    <div class="dashboard-stats">
+        <div class="stat-card">
+            <div class="stat-label">Total Jobs This Month</div>
+            <div class="stat-value" id="totalJobs">0</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Total Customers</div>
+            <div class="stat-value" id="totalCustomers">0</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Gross Revenue</div>
+            <div class="stat-value" id="totalGross">$0</div>
+        </div>
+        <div class="stat-card profit">
+            <div class="stat-label">Net Profit/Loss</div>
+            <div class="stat-value" id="totalProfit">$0</div>
+        </div>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <div class="nav-tabs">
+        <button class="nav-tab active" data-tab="seo">📱 SEO Post Generator</button>
+        <button class="nav-tab" data-tab="jobs">📊 Profit & Loss Tracker</button>
+        <button class="nav-tab" data-tab="customers">👥 Customer Database</button>
+    </div>
+
+    <!-- Main Content -->
+    <div class="content">
+        <!-- SEO Post Generator Tab -->
+        <div id="seo" class="tab-content active">
+            <div class="form-card">
+                <h2>Generate SEO-Optimized Social Media Posts</h2>
+                <div class="message" id="seoMessage"></div>
+                
+                <form id="seoForm">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="seoCompanyName">Company Name *</label>
+                            <input type="text" id="seoCompanyName" placeholder="Tex Mex Junk Removal" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="seoServiceType">Service Type *</label>
+                            <select id="seoServiceType" required>
+                                <option value="">Select service...</option>
+                                <option value="garage cleanout">Garage Cleanout</option>
+                                <option value="estate cleanout">Estate Cleanout</option>
+                                <option value="furniture removal">Furniture Removal</option>
+                                <option value="appliance removal">Appliance Removal</option>
+                                <option value="mattress disposal">Mattress Disposal</option>
+                                <option value="hot tub removal">Hot Tub Removal</option>
+                                <option value="construction debris removal">Construction Debris Removal</option>
+                                <option value="yard waste removal">Yard Waste Removal</option>
+                                <option value="hoarding cleanout">Hoarding Cleanout</option>
+                                <option value="foreclosure cleanout">Foreclosure Cleanout</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="seoArea">Area/Neighborhood *</label>
+                            <input type="text" id="seoArea" placeholder="Downtown Austin, TX" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="seoPhone">Phone Number *</label>
+                            <input type="tel" id="seoPhone" placeholder="(512) 555-0123" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="seoEmail">Email</label>
+                            <input type="email" id="seoEmail" placeholder="info@yourbusiness.com">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="seoWebsite">Website</label>
+                            <input type="url" id="seoWebsite" placeholder="https://yourbusiness.com">
+                        </div>
+
+                        <div class="form-group full-width">
+                            <label>Job Photo (Optional)</label>
+                            <div class="photo-upload" id="seoPhotoUpload">
+                                <div class="upload-icon">📸</div>
+                                <div class="upload-text">Click to upload before/after photo</div>
+                                <input type="file" id="seoPhotoInput" accept="image/*" style="display: none;">
+                                <img id="seoPhotoPreview" class="photo-preview" alt="Job preview">
+                            </div>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn" style="width: 100%; margin-top: 20px;">
+                        ✨ Generate Posts for All Platforms
+                    </button>
+                </form>
+            </div>
+
+            <!-- Generated Posts Display -->
+            <div id="seoResults" style="display: none;">
+                <div class="form-card">
+                    <h2>Your Posts Are Ready! 🎉</h2>
+                    
+                    <!-- Multi-Platform Share Section -->
+                    <div style="background: #f9fafb; padding: 20px; border-radius: 12px; margin-bottom: 20px;">
+                        <h3 style="margin-bottom: 15px; font-size: 16px; color: #374151;">📤 Share to Multiple Platforms</h3>
+                        
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-bottom: 15px;">
+                            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; padding: 10px; background: white; border-radius: 8px; border: 2px solid #e5e7eb;">
+                                <input type="checkbox" id="shareFacebook" checked style="width: 18px; height: 18px; cursor: pointer;">
+                                <span style="font-weight: 600; color: #374151;">📘 Facebook</span>
+                            </label>
+                            
+                            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; padding: 10px; background: white; border-radius: 8px; border: 2px solid #e5e7eb;">
+                                <input type="checkbox" id="shareInstagram" checked style="width: 18px; height: 18px; cursor: pointer;">
+                                <span style="font-weight: 600; color: #374151;">📷 Instagram</span>
+                            </label>
+                            
+                            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; padding: 10px; background: white; border-radius: 8px; border: 2px solid #e5e7eb;">
+                                <input type="checkbox" id="shareTwitter" checked style="width: 18px; height: 18px; cursor: pointer;">
+                                <span style="font-weight: 600; color: #374151;">✖️ X (Twitter)</span>
+                            </label>
+                            
+                            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; padding: 10px; background: white; border-radius: 8px; border: 2px solid #e5e7eb;">
+                                <input type="checkbox" id="shareNextdoor" checked style="width: 18px; height: 18px; cursor: pointer;">
+                                <span style="font-weight: 600; color: #374151;">🏘️ Nextdoor</span>
+                            </label>
+                            
+                            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; padding: 10px; background: white; border-radius: 8px; border: 2px solid #e5e7eb;">
+                                <input type="checkbox" id="shareThreads" checked style="width: 18px; height: 18px; cursor: pointer;">
+                                <span style="font-weight: 600; color: #374151;">🧵 Threads</span>
+                            </label>
+                        </div>
+
+                        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                            <button class="btn btn-success" onclick="shareToSelected()" style="flex: 1; min-width: 200px;">
+                                🚀 Share to Selected Platforms
+                            </button>
+                            <button class="btn btn-secondary" onclick="selectAllPlatforms()" style="flex: 0;">
+                                ✅ Select All
+                            </button>
+                            <button class="btn btn-secondary" onclick="deselectAllPlatforms()" style="flex: 0;">
+                                ❌ Clear All
+                            </button>
+                        </div>
+
+                        <div class="tip" style="margin-top: 15px;">
+                            💡 <strong>How it works:</strong> Select platforms → Click "Share to Selected" → Opens each platform in a new tab with your post pre-filled. You'll be prompted to log in if not already logged in.
+                        </div>
+                    </div>
+
+                    <!-- Individual Platform Tabs -->
+                    <div class="nav-tabs" style="margin: 20px 0; padding: 0;">
+                        <button class="nav-tab active" data-platform="facebook">Facebook</button>
+                        <button class="nav-tab" data-platform="instagram">Instagram</button>
+                        <button class="nav-tab" data-platform="twitter">X</button>
+                        <button class="nav-tab" data-platform="nextdoor">Nextdoor</button>
+                        <button class="nav-tab" data-platform="threads">Threads</button>
+                    </div>
+
+                    <div id="facebookPost" class="platform-post active">
+                        <textarea id="facebookText" rows="8" style="width: 100%; margin-bottom: 10px;" readonly></textarea>
+                        <div style="margin-bottom: 10px;"><strong>Hashtags:</strong> <span id="facebookHashtags"></span></div>
+                        <img id="facebookImage" style="max-width: 100%; display: none; border-radius: 8px; margin-bottom: 10px;">
+                        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                            <button class="btn btn-success" onclick="copyPost('facebook')" style="flex: 1;">
+                                📋 Copy Post
+                            </button>
+                            <button class="btn" onclick="shareToFacebook()" style="flex: 1; background: #1877f2;">
+                                📘 Share to Facebook
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="instagramPost" class="platform-post" style="display: none;">
+                        <textarea id="instagramText" rows="8" style="width: 100%; margin-bottom: 10px;" readonly></textarea>
+                        <div style="margin-bottom: 10px;"><strong>Hashtags:</strong> <span id="instagramHashtags"></span></div>
+                        <img id="instagramImage" style="max-width: 100%; display: none; border-radius: 8px; margin-bottom: 10px;">
+                        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                            <button class="btn btn-success" onclick="copyPost('instagram')" style="flex: 1;">
+                                📋 Copy Post
+                            </button>
+                            <button class="btn" onclick="shareToInstagram()" style="flex: 1; background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);">
+                                📷 Open Instagram
+                            </button>
+                        </div>
+                        <div class="tip" style="margin-top: 10px;">
+                            💡 Instagram doesn't support pre-filled posts via URL. Click "Copy Post" then paste when Instagram opens.
+                        </div>
+                    </div>
+
+                    <div id="twitterPost" class="platform-post" style="display: none;">
+                        <textarea id="twitterText" rows="6" style="width: 100%; margin-bottom: 10px;" readonly></textarea>
+                        <div style="margin-bottom: 10px;"><strong>Hashtags:</strong> <span id="twitterHashtags"></span></div>
+                        <img id="twitterImage" style="max-width: 100%; display: none; border-radius: 8px; margin-bottom: 10px;">
+                        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                            <button class="btn btn-success" onclick="copyPost('twitter')" style="flex: 1;">
+                                📋 Copy Post
+                            </button>
+                            <button class="btn" onclick="shareToTwitter()" style="flex: 1; background: #000000;">
+                                ✖️ Share to X
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="nextdoorPost" class="platform-post" style="display: none;">
+                        <textarea id="nextdoorText" rows="10" style="width: 100%; margin-bottom: 10px;" readonly></textarea>
+                        <img id="nextdoorImage" style="max-width: 100%; display: none; border-radius: 8px; margin-bottom: 10px;">
+                        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                            <button class="btn btn-success" onclick="copyPost('nextdoor')" style="flex: 1;">
+                                📋 Copy Post
+                            </button>
+                            <button class="btn" onclick="shareToNextdoor()" style="flex: 1; background: #00b246;">
+                                🏘️ Open Nextdoor
+                            </button>
+                        </div>
+                        <div class="tip" style="margin-top: 10px;">
+                            💡 Nextdoor doesn't support pre-filled posts. Click "Copy Post" then paste when Nextdoor opens.
+                        </div>
+                    </div>
+
+                    <div id="threadsPost" class="platform-post" style="display: none;">
+                        <textarea id="threadsText" rows="6" style="width: 100%; margin-bottom: 10px;" readonly></textarea>
+                        <div style="margin-bottom: 10px;"><strong>Hashtags:</strong> <span id="threadsHashtags"></span></div>
+                        <img id="threadsImage" style="max-width: 100%; display: none; border-radius: 8px; margin-bottom: 10px;">
+                        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                            <button class="btn btn-success" onclick="copyPost('threads')" style="flex: 1;">
+                                📋 Copy Post
+                            </button>
+                            <button class="btn" onclick="shareToThreads()" style="flex: 1; background: #000000;">
+                                🧵 Open Threads
+                            </button>
+                        </div>
+                        <div class="tip" style="margin-top: 10px;">
+                            💡 Threads doesn't support pre-filled posts. Click "Copy Post" then paste when Threads opens.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Profit & Loss Tracker Tab -->
+        <div id="jobs" class="tab-content">
+            <!-- Upgrade Banner -->
+            <div class="upgrade-banner">
+                <h3>🚀 Need Multi-Device Access or Team Features?</h3>
+                <p>Upgrade to our Cloud Edition for secure sync across devices, team accounts, and advanced analytics.</p>
+                <button class="btn btn-secondary" style="background: white; color: #667eea;" 
+                        onclick="alert('Cloud Edition coming soon! Email us to join the waitlist.')">
+                    Learn More About Cloud Edition
+                </button>
+            </div>
+
+            <div class="form-card">
+                <h2>Add New Job</h2>
+                <div class="message" id="jobMessage"></div>
+                
+                <form id="jobForm">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="jobDate">Date *</label>
+                            <input type="date" id="jobDate" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="jobCustomerName">Customer Name *</label>
+                            <input type="text" id="jobCustomerName" placeholder="John Smith" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="jobPhone">Phone *</label>
+                            <input type="tel" id="jobPhone" placeholder="(555) 123-4567" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="jobEmail">Email</label>
+                            <input type="email" id="jobEmail" placeholder="john@email.com">
+                        </div>
+
+                        <div class="form-group full-width">
+                            <label for="jobAddress">Address *</label>
+                            <input type="text" id="jobAddress" placeholder="123 Main St, Austin, TX 78701" required>
+                            <div class="data-minimization-tip">
+                                💡 <strong>Privacy Tip:</strong> Only store full addresses if required for your operations. 
+                                Consider using just "City, State" or "Zip Code" to minimize risk.
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="jobMarketingSource">Marketing Source *</label>
+                            <select id="jobMarketingSource" required>
+                                <option value="">Select source...</option>
+                                <option value="Google">Google Search</option>
+                                <option value="Yard Sign">Yard Sign</option>
+                                <option value="Nextdoor">Nextdoor</option>
+                                <option value="Facebook">Facebook</option>
+                                <option value="Instagram">Instagram</option>
+                                <option value="Referral">Referral</option>
+                                <option value="Repeat Customer">Repeat Customer</option>
+                                <option value="Realtor">Realtor Partnership</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="jobGross">Total Gross (Revenue) *</label>
+                            <input type="number" id="jobGross" placeholder="450.00" step="0.01" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="jobDumpFee">Dump Fee</label>
+                            <input type="number" id="jobDumpFee" placeholder="80.00" step="0.01" value="0">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="jobLabor">Labor Pay</label>
+                            <input type="number" id="jobLabor" placeholder="60.00" step="0.01" value="0">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="jobGas">Gas</label>
+                            <input type="number" id="jobGas" placeholder="20.00" step="0.01" value="0">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="jobUhaul">U-Haul Rental</label>
+                            <input type="number" id="jobUhaul" placeholder="0.00" step="0.01" value="0">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="jobOther">Other Expenses</label>
+                            <input type="number" id="jobOther" placeholder="0.00" step="0.01" value="0">
+                        </div>
+                    </div>
+
+                    <div class="tip">
+                        💡 Profit/Loss will be calculated automatically based on your inputs
+                    </div>
+
+                    <button type="submit" class="btn" style="width: 100%; margin-top: 20px;">
+                        💾 Save Job
+                    </button>
+                </form>
+            </div>
+
+            <!-- Jobs Table -->
+            <div class="filter-bar">
+                <div class="filter-grid">
+                    <div class="form-group">
+                        <label for="jobFilterMonth">Filter by Month</label>
+                        <input type="month" id="jobFilterMonth">
+                    </div>
+                    <div class="form-group">
+                        <label>&nbsp;</label>
+                        <button class="btn btn-secondary" onclick="filterJobs()">Apply Filter</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="table-container">
+                <div class="table-header">
+                    <h2>All Jobs</h2>
+                    <div class="table-actions">
+                        <label class="privacy-toggle" title="Toggle to hide/show sensitive customer data">
+                            <input type="checkbox" id="privacyToggle" checked onchange="togglePrivacy()">
+                            <span>👁️ Show Full Details</span>
+                        </label>
+                        <button class="btn btn-secondary btn-small" onclick="exportJobsToCSV()">
+                            📥 Export to Spreadsheet
+                        </button>
+                    </div>
+                </div>
+                <div style="overflow-x: auto;">
+                    <table id="jobsTable">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Customer</th>
+                                <th>Phone</th>
+                                <th>Address</th>
+                                <th>Source</th>
+                                <th>Gross</th>
+                                <th>Expenses</th>
+                                <th>Profit</th>
+                                <th>Margin %</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="jobsTableBody">
+                            <tr>
+                                <td colspan="10" class="empty-state">
+                                    <div class="empty-state-icon">📊</div>
+                                    <div>No jobs added yet. Add your first job above!</div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Customer Database Tab -->
+        <div id="customers" class="tab-content">
+            <div class="filter-bar">
+                <div class="filter-grid">
+                    <div class="form-group">
+                        <label for="customerFilterMonth">Filter by Month</label>
+                        <input type="month" id="customerFilterMonth">
+                    </div>
+                    <div class="form-group">
+                        <label for="customerSearch">Search</label>
+                        <input type="text" id="customerSearch" placeholder="Search by name, phone, email...">
+                    </div>
+                    <div class="form-group">
+                        <label>&nbsp;</label>
+                        <button class="btn btn-secondary" onclick="filterCustomers()">Apply Filter</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="table-container">
+                <div class="table-header">
+                    <h2>Customer Database</h2>
+                    <div class="table-actions">
+                        <label class="privacy-toggle" title="Toggle to hide/show sensitive customer data">
+                            <input type="checkbox" id="customerPrivacyToggle" checked onchange="toggleCustomerPrivacy()">
+                            <span>👁️ Show Full Details</span>
+                        </label>
+                        <button class="btn btn-secondary btn-small" onclick="exportCustomersToCSV()">
+                            📥 Export to Spreadsheet
+                        </button>
+                    </div>
+                </div>
+                <div style="overflow-x: auto;">
+                    <table id="customersTable">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Phone</th>
+                                <th>Email</th>
+                                <th>Address</th>
+                                <th>Total Jobs</th>
+                                <th>Total Spent</th>
+                                <th>Last Job</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="customersTableBody">
+                            <tr>
+                                <td colspan="8" class="empty-state">
+                                    <div class="empty-state-icon">👥</div>
+                                    <div>No customers yet. Add jobs to build your customer database!</div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Review Request Modal -->
+    <div id="reviewModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Send Review Request</h2>
+                <button class="close-modal" onclick="closeReviewModal()">&times;</button>
+            </div>
+            
+            <div class="message" id="reviewMessage"></div>
+
+            <form id="reviewForm">
+                <input type="hidden" id="reviewCustomerName">
+                <input type="hidden" id="reviewCustomerPhone">
+                <input type="hidden" id="reviewCustomerEmail">
+
+                <div class="form-group">
+                    <label>Customer</label>
+                    <input type="text" id="reviewCustomerDisplay" readonly>
+                </div>
+
+                <div class="form-group">
+                    <label for="reviewPlatform">Review Platform *</label>
+                    <select id="reviewPlatform" required>
+                        <option value="">Select platform...</option>
+                        <option value="google">Google Reviews</option>
+                        <option value="yelp">Yelp</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="reviewLink">Review Link *</label>
+                    <input type="url" id="reviewLink" placeholder="https://g.page/r/..." required>
+                    <div class="tip">
+                        💡 Get your Google review link from your Google Business Profile. For Yelp, use your business page URL.
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="reviewMethod">Send Via *</label>
+                    <select id="reviewMethod" required onchange="updateReviewMethodUI()">
+                        <option value="">Select method...</option>
+                        <option value="email">Email</option>
+                        <option value="sms">SMS (Text Message)</option>
+                    </select>
+                    <div class="tip" id="smsProTip" style="display: none; background: #d1fae5; border-left-color: #10b981;">
+                        🚀 <strong>Pro Tip:</strong> SMS gets 5x more responses than email! Customers check texts within 3 minutes on average.
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Preview Message</label>
+                    <textarea id="reviewPreview" rows="6" readonly style="width: 100%;"></textarea>
+                </div>
+
+                <div id="sendButtonsContainer">
+                    <!-- Buttons will be dynamically inserted here -->
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Initialize app
+        let jobs = [];
+        let currentEditJob = null;
+        let masterPassword = null;
+        let lastActivityTime = Date.now();
+        let autoLockTimer = null;
+
+        // Security Configuration
+        const SECURITY_CONFIG = {
+            AUTO_LOCK_TIME: 30 * 60 * 1000, // 30 minutes
+            BACKUP_INTERVAL: 5 * 60 * 1000, // 5 minutes
+            PASSWORD_MIN_LENGTH: 8
+        };
+
+        // Check if user has set up security
+        window.addEventListener('load', () => {
+            const hasPassword = localStorage.getItem('hasPassword');
+            
+            if (!hasPassword) {
+                document.getElementById('securityOverlay').classList.remove('hidden');
+            } else {
+                document.getElementById('lockScreen').classList.add('active');
+            }
+            
+            // Set up activity tracking
+            setupActivityTracking();
+            
+            // Set up auto-backup
+            setupAutoBackup();
+        });
+
+        // Password Strength Checker
+        document.getElementById('masterPassword').addEventListener('input', (e) => {
+            const password = e.target.value;
+            const strength = checkPasswordStrength(password);
+            const bar = document.getElementById('passwordStrengthBar');
+            const text = document.getElementById('passwordStrengthText');
+            
+            bar.className = 'password-strength-bar ' + strength.level;
+            text.textContent = strength.message;
+            text.style.color = strength.color;
+        });
+
+        function checkPasswordStrength(password) {
+            if (password.length < 8) {
+                return { level: 'weak', message: 'Too short (min. 8 characters)', color: '#ef4444' };
+            }
+            
+            let strength = 0;
+            if (password.length >= 12) strength++;
+            if (/[a-z]/.test(password)) strength++;
+            if (/[A-Z]/.test(password)) strength++;
+            if (/[0-9]/.test(password)) strength++;
+            if (/[^a-zA-Z0-9]/.test(password)) strength++;
+            
+            if (strength < 3) {
+                return { level: 'weak', message: 'Weak - Add uppercase, numbers, or symbols', color: '#ef4444' };
+            } else if (strength < 5) {
+                return { level: 'medium', message: 'Medium - Consider adding more variety', color: '#f59e0b' };
+            } else {
+                return { level: 'strong', message: 'Strong password! ✓', color: '#10b981' };
+            }
+        }
+
+        // Setup Security
+        function setupSecurity() {
+            const password = document.getElementById('masterPassword').value;
+            const confirm = document.getElementById('masterPasswordConfirm').value;
+            const accepted = document.getElementById('legalAccept').checked;
+            
+            if (!accepted) {
+                alert('Please accept the terms of service to continue.');
+                return;
+            }
+            
+            if (password.length < SECURITY_CONFIG.PASSWORD_MIN_LENGTH) {
+                alert('Password must be at least 8 characters long.');
+                return;
+            }
+            
+            if (password !== confirm) {
+                alert('Passwords do not match.');
+                return;
+            }
+            
+            // Hash and store password
+            const hashedPassword = CryptoJS.SHA256(password).toString();
+            localStorage.setItem('passwordHash', hashedPassword);
+            localStorage.setItem('hasPassword', 'true');
+            localStorage.setItem('acceptedTerms', new Date().toISOString());
+            
+            masterPassword = password;
+            
+            document.getElementById('securityOverlay').classList.add('hidden');
+            
+            // Initialize empty encrypted data
+            saveEncryptedData('jobs', []);
+            
+            // Load the app
+            loadDecryptedData();
+            renderJobs();
+            renderCustomers();
+            updateDashboard();
+            
+            showMessage('seoMessage', 'Security setup complete! Your data is now encrypted. 🔒', 'success');
+        }
+
+        // Unlock Dashboard
+        function unlockDashboard() {
+            const password = document.getElementById('unlockPassword').value;
+            const storedHash = localStorage.getItem('passwordHash');
+            const inputHash = CryptoJS.SHA256(password).toString();
+            
+            if (inputHash === storedHash) {
+                masterPassword = password;
+                document.getElementById('lockScreen').classList.remove('active');
+                document.getElementById('unlockPassword').value = '';
+                document.getElementById('unlockError').classList.remove('show');
+                
+                // Load encrypted data
+                loadDecryptedData();
+                renderJobs();
+                renderCustomers();
+                updateDashboard();
+                
+                // Reset activity timer
+                resetActivityTimer();
+            } else {
+                showMessage('unlockError', '❌ Incorrect password. Try again.', 'error');
+            }
+        }
+
+        // Encryption Functions
+        function saveEncryptedData(key, data) {
+            if (!masterPassword) return;
+            
+            const encrypted = CryptoJS.AES.encrypt(
+                JSON.stringify(data),
+                masterPassword
+            ).toString();
+            
+            localStorage.setItem('encrypted_' + key, encrypted);
+            
+            // Show backup indicator
+            showBackupIndicator();
+        }
+
+        function loadEncryptedData(key) {
+            if (!masterPassword) return null;
+            
+            try {
+                const encrypted = localStorage.getItem('encrypted_' + key);
+                if (!encrypted) return null;
+                
+                const decrypted = CryptoJS.AES.decrypt(encrypted, masterPassword);
+                const decryptedString = decrypted.toString(CryptoJS.enc.Utf8);
+                
+                if (!decryptedString) return null;
+                
+                return JSON.parse(decryptedString);
+            } catch (error) {
+                console.error('Decryption error:', error);
+                return null;
+            }
+        }
+
+        function loadDecryptedData() {
+            const decryptedJobs = loadEncryptedData('jobs');
+            jobs = decryptedJobs || [];
+        }
+
+        // Activity Tracking & Auto-Lock
+        function setupActivityTracking() {
+            const events = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart', 'click'];
+            
+            events.forEach(event => {
+                document.addEventListener(event, () => {
+                    lastActivityTime = Date.now();
+                    resetActivityTimer();
+                }, true);
+            });
+            
+            resetActivityTimer();
+        }
+
+        function resetActivityTimer() {
+            if (autoLockTimer) {
+                clearTimeout(autoLockTimer);
+            }
+            
+            autoLockTimer = setTimeout(() => {
+                lockDashboard();
+            }, SECURITY_CONFIG.AUTO_LOCK_TIME);
+        }
+
+        function lockDashboard() {
+            masterPassword = null;
+            document.getElementById('lockScreen').classList.add('active');
+            
+            // Clear sensitive data from memory
+            jobs = [];
+            renderJobs();
+            renderCustomers();
+        }
+
+        // Auto-Backup System
+        function setupAutoBackup() {
+            setInterval(() => {
+                if (masterPassword && jobs.length > 0) {
+                    saveEncryptedData('jobs', jobs);
+                    saveEncryptedData('backup_' + Date.now(), jobs); // Timestamped backup
+                    
+                    // Keep only last 5 backups
+                    cleanOldBackups();
+                }
+            }, SECURITY_CONFIG.BACKUP_INTERVAL);
+        }
+
+        function cleanOldBackups() {
+            const keys = Object.keys(localStorage);
+            const backupKeys = keys.filter(k => k.startsWith('encrypted_backup_')).sort().reverse();
+            
+            // Keep only 5 most recent backups
+            backupKeys.slice(5).forEach(key => {
+                localStorage.removeItem(key);
+            });
+        }
+
+        function showBackupIndicator() {
+            const indicator = document.getElementById('autoBackupIndicator');
+            indicator.classList.add('show');
+            setTimeout(() => {
+                indicator.classList.remove('show');
+            }, 2000);
+        }
+
+        // Reset All Data (Nuclear Option)
+        function resetAllData() {
+            const confirmed = confirm('⚠️ FINAL WARNING: This will DELETE ALL DATA including your password. This CANNOT be undone. Are you absolutely sure?');
+            
+            if (!confirmed) return;
+            
+            const doubleConfirm = prompt('Type "DELETE EVERYTHING" to confirm:');
+            
+            if (doubleConfirm === 'DELETE EVERYTHING') {
+                localStorage.clear();
+                location.reload();
+            } else {
+                alert('Reset cancelled.');
+            }
+        }
+
+        // Show Terms/Privacy (Placeholder)
+        function showTerms() {
+            alert('TERMS OF SERVICE\n\n' +
+                  'This dashboard is a tool. YOU are responsible for:\n' +
+                  '- Legal compliance (GDPR, CCPA, etc.)\n' +
+                  '- Data security\n' +
+                  '- Customer consent\n' +
+                  '- Privacy violations\n' +
+                  '- Data breaches\n\n' +
+                  'We are NOT liable for:\n' +
+                  '- How you use this tool\n' +
+                  '- Data loss\n' +
+                  '- Legal violations\n' +
+                  '- Security breaches\n\n' +
+                  'By using this tool, you agree to indemnify us against any claims arising from your use.');
+        }
+
+        function showPrivacy() {
+            alert('PRIVACY POLICY\n\n' +
+                  'What we collect: Nothing. All data stays on your device.\n\n' +
+                  'What YOU collect: Customer names, phones, emails, addresses.\n\n' +
+                  'Your responsibilities:\n' +
+                  '- Get customer consent\n' +
+                  '- Store data securely\n' +
+                  '- Delete on request\n' +
+                  '- Comply with laws\n\n' +
+                  'We do NOT:\n' +
+                  '- Access your data\n' +
+                  '- Store data on our servers\n' +
+                  '- Share data with third parties');
+        }
+
+        // Modified Save Job with Encryption
+        function saveJob() {
+            const date = document.getElementById('jobDate').value;
+            const customerName = document.getElementById('jobCustomerName').value;
+            const phone = document.getElementById('jobPhone').value;
+            const email = document.getElementById('jobEmail').value;
+            const address = document.getElementById('jobAddress').value;
+            const marketingSource = document.getElementById('jobMarketingSource').value;
+            const gross = parseFloat(document.getElementById('jobGross').value);
+            const dumpFee = parseFloat(document.getElementById('jobDumpFee').value) || 0;
+            const labor = parseFloat(document.getElementById('jobLabor').value) || 0;
+            const gas = parseFloat(document.getElementById('jobGas').value) || 0;
+            const uhaul = parseFloat(document.getElementById('jobUhaul').value) || 0;
+            const other = parseFloat(document.getElementById('jobOther').value) || 0;
+
+            const totalExpenses = dumpFee + labor + gas + uhaul + other;
+            const profit = gross - totalExpenses;
+            const margin = gross > 0 ? ((profit / gross) * 100) : 0;
+
+            const job = {
+                id: Date.now(),
+                date,
+                customerName,
+                phone,
+                email,
+                address,
+                marketingSource,
+                gross,
+                expenses: {
+                    dumpFee,
+                    labor,
+                    gas,
+                    uhaul,
+                    other
+                },
+                totalExpenses,
+                profit,
+                margin
+            };
+
+            if (currentEditJob !== null) {
+                jobs[currentEditJob] = job;
+                currentEditJob = null;
+            } else {
+                jobs.push(job);
+            }
+
+            // Save with encryption
+            saveEncryptedData('jobs', jobs);
+            
+            document.getElementById('jobForm').reset();
+            document.getElementById('jobDate').valueAsDate = new Date();
+            
+            renderJobs();
+            updateDashboard();
+            
+            showMessage('jobMessage', 'Job saved and encrypted! 💾🔒', 'success');
+        }
+
+        // Modified Export with Warning
+        function exportJobsToCSV() {
+            const confirmed = confirm('⚠️ SECURITY WARNING:\n\n' +
+                'This export contains SENSITIVE CUSTOMER DATA:\n' +
+                '- Names, phone numbers, emails, addresses\n' +
+                '- Financial information\n\n' +
+                'By exporting, you agree to:\n' +
+                '✓ Store this file securely\n' +
+                '✓ Delete when no longer needed\n' +
+                '✓ NOT share with unauthorized parties\n' +
+                '✓ Comply with GDPR/CCPA regulations\n\n' +
+                'Sharing this data may violate privacy laws.\n\n' +
+                'Continue with export?');
+            
+            if (!confirmed) return;
+            
+            const filterMonth = document.getElementById('jobFilterMonth').value;
+            let exportJobs = jobs;
+            let filename = 'all_jobs_CONFIDENTIAL.csv';
+
+            if (filterMonth) {
+                const [year, month] = filterMonth.split('-');
+                exportJobs = jobs.filter(job => {
+                    const jobDate = new Date(job.date);
+                    return jobDate.getFullYear() === parseInt(year) && 
+                           jobDate.getMonth() === parseInt(month) - 1;
+                });
+                filename = `jobs_${filterMonth}_CONFIDENTIAL.csv`;
+            }
+
+            const headers = ['Date', 'Customer', 'Phone', 'Email', 'Address', 'Marketing Source', 
+                           'Gross', 'Dump Fee', 'Labor', 'Gas', 'U-Haul', 'Other Expenses', 
+                           'Total Expenses', 'Profit/Loss', 'Margin %'];
+            
+            const rows = exportJobs.map(job => [
+                job.date,
+                job.customerName,
+                job.phone,
+                job.email || '',
+                job.address,
+                job.marketingSource,
+                job.gross.toFixed(2),
+                job.expenses.dumpFee.toFixed(2),
+                job.expenses.labor.toFixed(2),
+                job.expenses.gas.toFixed(2),
+                job.expenses.uhaul.toFixed(2),
+                job.expenses.other.toFixed(2),
+                job.totalExpenses.toFixed(2),
+                job.profit.toFixed(2),
+                job.margin.toFixed(2)
+            ]);
+
+            const csv = [headers, ...rows].map(row => row.join(',')).join('\n');
+            downloadCSV(csv, filename);
+            
+            showMessage('jobMessage', '⚠️ Confidential data exported. Handle securely!', 'error');
+        }
+
+        function exportCustomersToCSV() {
+            const confirmed = confirm('⚠️ SECURITY WARNING:\n\n' +
+                'This export contains SENSITIVE CUSTOMER DATA.\n\n' +
+                'You MUST:\n' +
+                '✓ Store securely\n' +
+                '✓ Delete when done\n' +
+                '✓ NOT share without consent\n' +
+                '✓ Comply with privacy laws\n\n' +
+                'Continue?');
+            
+            if (!confirmed) return;
+
+            const customersMap = new Map();
+
+            jobs.forEach(job => {
+                const key = job.phone;
+                if (!customersMap.has(key)) {
+                    customersMap.set(key, {
+                        name: job.customerName,
+                        phone: job.phone,
+                        email: job.email || '',
+                        address: job.address,
+                        jobCount: 0,
+                        totalSpent: 0,
+                        lastJobDate: job.date
+                    });
+                }
+
+                const customer = customersMap.get(key);
+                customer.jobCount++;
+                customer.totalSpent += job.gross;
+                if (job.date > customer.lastJobDate) {
+                    customer.lastJobDate = job.date;
+                }
+            });
+
+            const customers = Array.from(customersMap.values());
+            const headers = ['Name', 'Phone', 'Email', 'Address', 'Total Jobs', 'Total Spent', 'Last Job Date'];
+            const rows = customers.map(c => [
+                c.name,
+                c.phone,
+                c.email,
+                c.address,
+                c.jobCount,
+                c.totalSpent.toFixed(2),
+                c.lastJobDate
+            ]);
+
+            const csv = [headers, ...rows].map(row => row.join(',')).join('\n');
+            downloadCSV(csv, 'customers_CONFIDENTIAL.csv');
+            
+            showMessage('jobMessage', '⚠️ Confidential data exported. Handle securely!', 'error');
+        }
+
+        // PII Masking Functions
+        let privacyMode = true; // Start with privacy ON
+
+        function maskEmail(email) {
+            if (!email || !privacyMode) return email || '-';
+            const [local, domain] = email.split('@');
+            if (!domain) return email;
+            const maskedLocal = local.length > 2 ? local[0] + '***' : '***';
+            return `${maskedLocal}@${domain}`;
+        }
+
+        function maskPhone(phone) {
+            if (!phone || !privacyMode) return phone;
+            // Show only last 4 digits
+            const digits = phone.replace(/\D/g, '');
+            if (digits.length < 4) return '***';
+            return `***-***-${digits.slice(-4)}`;
+        }
+
+        function maskAddress(address) {
+            if (!address || !privacyMode) return address;
+            // Show only city and state if possible
+            const parts = address.split(',');
+            if (parts.length >= 2) {
+                // Return last 2 parts (likely city, state)
+                return '*** ' + parts.slice(-2).join(',');
+            }
+            return '***';
+        }
+
+        function maskName(name) {
+            if (!name || !privacyMode) return name;
+            const parts = name.trim().split(' ');
+            if (parts.length === 1) {
+                return name[0] + '***';
+            }
+            // Show first name, mask last name
+            return parts[0] + ' ' + parts[parts.length - 1][0] + '***';
+        }
+
+        function togglePrivacy() {
+            privacyMode = document.getElementById('privacyToggle').checked;
+            renderJobs();
+        }
+
+        function toggleCustomerPrivacy() {
+            privacyMode = document.getElementById('customerPrivacyToggle').checked;
+            renderCustomers();
+            // Sync both toggles
+            document.getElementById('privacyToggle').checked = privacyMode;
+        }
+
+        // Set today's date as default
+        document.getElementById('jobDate').valueAsDate = new Date();
+
+        // Navigation
+        document.querySelectorAll('.nav-tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                const targetTab = tab.dataset.tab;
+                
+                // Update tab buttons
+                document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                
+                // Update content
+                document.querySelectorAll('.tab-content').forEach(content => {
+                    content.classList.remove('active');
+                });
+                document.getElementById(targetTab).classList.add('active');
+
+                // Refresh data for the active tab
+                if (targetTab === 'customers') {
+                    renderCustomers();
+                }
+            });
+        });
+
+        // Platform post switching
+        document.querySelectorAll('[data-platform]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const platform = btn.dataset.platform;
+                
+                // Update buttons
+                btn.parentElement.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+                btn.classList.add('active');
+                
+                // Update posts
+                document.querySelectorAll('.platform-post').forEach(post => {
+                    post.style.display = 'none';
+                });
+                document.getElementById(platform + 'Post').style.display = 'block';
+            });
+        });
+
+        // SEO Form - Photo Upload
+        const seoPhotoUpload = document.getElementById('seoPhotoUpload');
+        const seoPhotoInput = document.getElementById('seoPhotoInput');
+        const seoPhotoPreview = document.getElementById('seoPhotoPreview');
+
+        seoPhotoUpload.addEventListener('click', () => seoPhotoInput.click());
+        seoPhotoInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    seoPhotoPreview.src = e.target.result;
+                    seoPhotoPreview.classList.add('show');
+                    seoPhotoUpload.classList.add('has-image');
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // SEO Form Submission
+        document.getElementById('seoForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            generateSEOPosts();
+        });
+
+        function generateSEOPosts() {
+            const companyName = document.getElementById('seoCompanyName').value;
+            const serviceType = document.getElementById('seoServiceType').value;
+            const area = document.getElementById('seoArea').value;
+            const phone = document.getElementById('seoPhone').value;
+            const email = document.getElementById('seoEmail').value;
+            const website = document.getElementById('seoWebsite').value;
+            const hasPhoto = seoPhotoPreview.classList.contains('show');
+            const photoSrc = seoPhotoPreview.src;
+
+            const data = { companyName, serviceType, area, phone, email, website, hasPhoto, photoSrc };
+
+            // Generate posts
+            const posts = {
+                facebook: generateFacebookPost(data),
+                instagram: generateInstagramPost(data),
+                twitter: generateTwitterPost(data),
+                nextdoor: generateNextdoorPost(data),
+                threads: generateThreadsPost(data)
+            };
+
+            // Display posts
+            Object.keys(posts).forEach(platform => {
+                document.getElementById(`${platform}Text`).value = posts[platform].text;
+                
+                if (posts[platform].hashtags) {
+                    document.getElementById(`${platform}Hashtags`).textContent = posts[platform].hashtags;
+                }
+
+                if (hasPhoto) {
+                    const img = document.getElementById(`${platform}Image`);
+                    if (img) {
+                        img.src = photoSrc;
+                        img.style.display = 'block';
+                    }
+                }
+            });
+
+            document.getElementById('seoResults').style.display = 'block';
+            document.getElementById('seoResults').scrollIntoView({ behavior: 'smooth' });
+            
+            showMessage('seoMessage', 'Posts generated successfully! 🎉', 'success');
+        }
+
+        function generateFacebookPost(data) {
+            const { companyName, serviceType, area, phone, email, website } = data;
+            const contact = [];
+            if (phone) contact.push(`📞 ${phone}`);
+            if (email) contact.push(`✉️ ${email}`);
+            if (website) contact.push(`🌐 ${website}`);
+            
+            const text = `✅ Another successful ${serviceType} completed in ${area}!
+
+${companyName} just helped another local family reclaim their space. We handled everything from start to finish - quick, professional, and eco-friendly disposal.
+
+Need junk removal? We serve the entire ${area.split(',')[0]} area with same-day and next-day appointments available!
+
+${contact.join('\n')}
+
+FREE quote - no hidden fees! Book your cleanout today! 🚚`;
+
+            const serviceTag = serviceType.replace(/\s+/g, '');
+            const areaTag = area.split(',')[0].replace(/\s+/g, '');
+            const hashtags = `#JunkRemoval #${areaTag} #${serviceTag} #LocalBusiness #EcoFriendly #Declutter`;
+
+            return { text, hashtags };
+        }
+
+        function generateInstagramPost(data) {
+            const { companyName, serviceType, area, phone } = data;
+            const text = `Another ${area} transformation! ✨
+
+${companyName} specializes in ${serviceType} and eco-friendly disposal. We make it easy - you point, we haul! 
+
+Same-day service available 📞 ${phone}
+
+Tag someone who needs this! 👇`;
+
+            const serviceTag = serviceType.replace(/\s+/g, '');
+            const areaTag = area.split(',')[0].replace(/\s+/g, '');
+            const hashtags = `#JunkRemoval #${serviceTag} #${areaTag} #BeforeAndAfter #HomeImprovement #Decluttering #LocalBusiness #SmallBusiness #EcoFriendly`;
+
+            return { text, hashtags };
+        }
+
+        function generateTwitterPost(data) {
+            const { companyName, serviceType, area, phone, website } = data;
+            const link = website || `Call ${phone}`;
+            const text = `✅ Just completed a ${serviceType} in ${area}!
+
+${companyName} makes junk removal easy. Same-day service, eco-friendly disposal, no hidden fees.
+
+Need a cleanout? ${link}`;
+
+            const serviceTag = serviceType.replace(/\s+/g, '');
+            const areaTag = area.split(',')[0].replace(/\s+/g, '');
+            const hashtags = `#JunkRemoval #${areaTag} #${serviceTag} #LocalService`;
+
+            return { text, hashtags };
+        }
+
+        function generateNextdoorPost(data) {
+            const { companyName, serviceType, area, phone, email, website } = data;
+            const contact = [];
+            if (phone) contact.push(`Call/text: ${phone}`);
+            if (email) contact.push(`Email: ${email}`);
+            if (website) contact.push(`Website: ${website}`);
+            
+            const text = `Hi neighbors! 👋
+
+${companyName} just completed a ${serviceType} right here in ${area}!
+
+As a local, family-owned business, we take pride in serving our community with reliable, affordable junk removal. Whether it's a single item or a whole house cleanout, we've got you covered.
+
+✅ Same-day & next-day service
+✅ Eco-friendly disposal & donation
+✅ Free estimates
+✅ No hidden fees
+✅ Fully licensed & insured
+
+${contact.join('\n')}
+
+Supporting local businesses keeps our neighborhood strong. We'd love to help with your next project!`;
+
+            return { text, hashtags: null };
+        }
+
+        function generateThreadsPost(data) {
+            const { companyName, serviceType, area, phone } = data;
+            const text = `Just wrapped up another ${serviceType} in ${area}! 
+
+The satisfaction of transforming a cluttered space into a clean slate never gets old 🙌
+
+${companyName} - making your space livable again, one haul at a time.
+
+DM or call ${phone} for a free quote!`;
+
+            const serviceTag = serviceType.replace(/\s+/g, '');
+            const areaTag = area.split(',')[0].replace(/\s+/g, '');
+            const hashtags = `#JunkRemoval #SmallBusiness #${areaTag} #${serviceTag}`;
+
+            return { text, hashtags };
+        }
+
+        function copyPost(platform) {
+            const text = document.getElementById(`${platform}Text`).value;
+            navigator.clipboard.writeText(text).then(() => {
+                showMessage('seoMessage', 'Post copied to clipboard! 📋', 'success');
+            });
+        }
+
+        // Multi-platform sharing functions
+        function selectAllPlatforms() {
+            document.getElementById('shareFacebook').checked = true;
+            document.getElementById('shareInstagram').checked = true;
+            document.getElementById('shareTwitter').checked = true;
+            document.getElementById('shareNextdoor').checked = true;
+            document.getElementById('shareThreads').checked = true;
+        }
+
+        function deselectAllPlatforms() {
+            document.getElementById('shareFacebook').checked = false;
+            document.getElementById('shareInstagram').checked = false;
+            document.getElementById('shareTwitter').checked = false;
+            document.getElementById('shareNextdoor').checked = false;
+            document.getElementById('shareThreads').checked = false;
+        }
+
+        function shareToSelected() {
+            const selected = [];
+            
+            if (document.getElementById('shareFacebook').checked) selected.push('facebook');
+            if (document.getElementById('shareInstagram').checked) selected.push('instagram');
+            if (document.getElementById('shareTwitter').checked) selected.push('twitter');
+            if (document.getElementById('shareNextdoor').checked) selected.push('nextdoor');
+            if (document.getElementById('shareThreads').checked) selected.push('threads');
+
+            if (selected.length === 0) {
+                showMessage('seoMessage', 'Please select at least one platform to share to.', 'error');
+                return;
+            }
+
+            // Copy all selected posts to clipboard first for platforms that need it
+            const needsCopy = selected.filter(p => ['instagram', 'nextdoor', 'threads'].includes(p));
+            if (needsCopy.length > 0) {
+                let allPosts = '';
+                needsCopy.forEach(platform => {
+                    const text = document.getElementById(`${platform}Text`).value;
+                    allPosts += `\n\n--- ${platform.toUpperCase()} ---\n${text}\n`;
+                });
+                navigator.clipboard.writeText(allPosts);
+            }
+
+            // Open each platform
+            selected.forEach((platform, index) => {
+                setTimeout(() => {
+                    switch(platform) {
+                        case 'facebook': shareToFacebook(); break;
+                        case 'instagram': shareToInstagram(); break;
+                        case 'twitter': shareToTwitter(); break;
+                        case 'nextdoor': shareToNextdoor(); break;
+                        case 'threads': shareToThreads(); break;
+                    }
+                }, index * 500); // Stagger by 500ms to avoid popup blockers
+            });
+
+            showMessage('seoMessage', `Opening ${selected.length} platform(s)... Posts copied to clipboard!`, 'success');
+        }
+
+        function shareToFacebook() {
+            const text = document.getElementById('facebookText').value;
+            const url = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}&quote=${encodeURIComponent(text)}`;
+            window.open(url, '_blank', 'width=600,height=400');
+        }
+
+        function shareToInstagram() {
+            // Instagram doesn't support URL sharing, just open Instagram
+            copyPost('instagram');
+            window.open('https://www.instagram.com/', '_blank');
+            showMessage('seoMessage', 'Instagram post copied! Paste it when Instagram opens.', 'success');
+        }
+
+        function shareToTwitter() {
+            const text = document.getElementById('twitterText').value;
+            const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`;
+            window.open(url, '_blank', 'width=600,height=400');
+        }
+
+        function shareToNextdoor() {
+            // Nextdoor doesn't support URL sharing, just open Nextdoor
+            copyPost('nextdoor');
+            window.open('https://nextdoor.com/', '_blank');
+            showMessage('seoMessage', 'Nextdoor post copied! Paste it when Nextdoor opens.', 'success');
+        }
+
+        function shareToThreads() {
+            // Threads doesn't support URL sharing yet, just open Threads
+            copyPost('threads');
+            window.open('https://www.threads.net/', '_blank');
+            showMessage('seoMessage', 'Threads post copied! Paste it when Threads opens.', 'success');
+        }
+
+        // Job Form Submission
+        document.getElementById('jobForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            saveJob();
+        });
+
+        function saveJob() {
+            const date = document.getElementById('jobDate').value;
+            const customerName = document.getElementById('jobCustomerName').value;
+            const phone = document.getElementById('jobPhone').value;
+            const email = document.getElementById('jobEmail').value;
+            const address = document.getElementById('jobAddress').value;
+            const marketingSource = document.getElementById('jobMarketingSource').value;
+            const gross = parseFloat(document.getElementById('jobGross').value);
+            const dumpFee = parseFloat(document.getElementById('jobDumpFee').value) || 0;
+            const labor = parseFloat(document.getElementById('jobLabor').value) || 0;
+            const gas = parseFloat(document.getElementById('jobGas').value) || 0;
+            const uhaul = parseFloat(document.getElementById('jobUhaul').value) || 0;
+            const other = parseFloat(document.getElementById('jobOther').value) || 0;
+
+            const totalExpenses = dumpFee + labor + gas + uhaul + other;
+            const profit = gross - totalExpenses;
+            const margin = gross > 0 ? ((profit / gross) * 100) : 0;
+
+            const job = {
+                id: Date.now(),
+                date,
+                customerName,
+                phone,
+                email,
+                address,
+                marketingSource,
+                gross,
+                expenses: {
+                    dumpFee,
+                    labor,
+                    gas,
+                    uhaul,
+                    other
+                },
+                totalExpenses,
+                profit,
+                margin
+            };
+
+            if (currentEditJob !== null) {
+                jobs[currentEditJob] = job;
+                currentEditJob = null;
+            } else {
+                jobs.push(job);
+            }
+
+            localStorage.setItem('jobs', JSON.stringify(jobs));
+            
+            document.getElementById('jobForm').reset();
+            document.getElementById('jobDate').valueAsDate = new Date();
+            
+            renderJobs();
+            updateDashboard();
+            
+            showMessage('jobMessage', 'Job saved successfully! 💾', 'success');
+        }
+
+        function renderJobs() {
+            const tbody = document.getElementById('jobsTableBody');
+            
+            if (jobs.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="10" class="empty-state">
+                            <div class="empty-state-icon">📊</div>
+                            <div>No jobs added yet. Add your first job above!</div>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tbody.innerHTML = jobs.map((job, index) => `
+                <tr>
+                    <td>${new Date(job.date).toLocaleDateString()}</td>
+                    <td class="${privacyMode ? 'pii-masked' : ''}" title="${privacyMode ? 'Click eye icon to reveal' : ''}">${maskName(job.customerName)}</td>
+                    <td class="${privacyMode ? 'pii-masked' : ''}" title="${privacyMode ? 'Click eye icon to reveal' : ''}">${maskPhone(job.phone)}</td>
+                    <td class="${privacyMode ? 'pii-masked' : ''}" title="${privacyMode ? 'Click eye icon to reveal' : ''}">${maskAddress(job.address)}</td>
+                    <td>${job.marketingSource}</td>
+                    <td>$${job.gross.toFixed(2)}</td>
+                    <td>$${job.totalExpenses.toFixed(2)}</td>
+                    <td class="${job.profit >= 0 ? 'profit-positive' : 'profit-negative'}">
+                        $${job.profit.toFixed(2)}
+                    </td>
+                    <td class="${job.profit >= 0 ? 'profit-positive' : 'profit-negative'}">
+                        ${job.margin.toFixed(1)}%
+                    </td>
+                    <td>
+                        <div class="action-buttons">
+                            <button class="action-btn edit" onclick="editJob(${index})">Edit</button>
+                            <button class="action-btn delete" onclick="deleteJob(${index})">Delete</button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function editJob(index) {
+            const job = jobs[index];
+            currentEditJob = index;
+
+            document.getElementById('jobDate').value = job.date;
+            document.getElementById('jobCustomerName').value = job.customerName;
+            document.getElementById('jobPhone').value = job.phone;
+            document.getElementById('jobEmail').value = job.email || '';
+            document.getElementById('jobAddress').value = job.address;
+            document.getElementById('jobMarketingSource').value = job.marketingSource;
+            document.getElementById('jobGross').value = job.gross;
+            document.getElementById('jobDumpFee').value = job.expenses.dumpFee;
+            document.getElementById('jobLabor').value = job.expenses.labor;
+            document.getElementById('jobGas').value = job.expenses.gas;
+            document.getElementById('jobUhaul').value = job.expenses.uhaul;
+            document.getElementById('jobOther').value = job.expenses.other;
+
+            document.querySelector('#jobs .form-card').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function deleteJob(index) {
+            if (confirm('Are you sure you want to delete this job?')) {
+                jobs.splice(index, 1);
+                localStorage.setItem('jobs', JSON.stringify(jobs));
+                renderJobs();
+                updateDashboard();
+                renderCustomers();
+            }
+        }
+
+        function renderCustomers() {
+            const customersMap = new Map();
+
+            jobs.forEach(job => {
+                const key = job.phone;
+                if (!customersMap.has(key)) {
+                    customersMap.set(key, {
+                        name: job.customerName,
+                        phone: job.phone,
+                        email: job.email || '',
+                        address: job.address,
+                        jobs: [],
+                        totalSpent: 0,
+                        lastJobDate: job.date
+                    });
+                }
+
+                const customer = customersMap.get(key);
+                customer.jobs.push(job);
+                customer.totalSpent += job.gross;
+                if (job.date > customer.lastJobDate) {
+                    customer.lastJobDate = job.date;
+                }
+            });
+
+            const customers = Array.from(customersMap.values());
+            const tbody = document.getElementById('customersTableBody');
+
+            if (customers.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="8" class="empty-state">
+                            <div class="empty-state-icon">👥</div>
+                            <div>No customers yet. Add jobs to build your customer database!</div>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tbody.innerHTML = customers.map(customer => `
+                <tr>
+                    <td class="${privacyMode ? 'pii-masked' : ''}" title="${privacyMode ? 'Click eye icon to reveal' : ''}">${maskName(customer.name)}</td>
+                    <td class="${privacyMode ? 'pii-masked' : ''}" title="${privacyMode ? 'Click eye icon to reveal' : ''}">${maskPhone(customer.phone)}</td>
+                    <td class="${privacyMode ? 'pii-masked' : ''}" title="${privacyMode ? 'Click eye icon to reveal' : ''}">${maskEmail(customer.email)}</td>
+                    <td class="${privacyMode ? 'pii-masked' : ''}" title="${privacyMode ? 'Click eye icon to reveal' : ''}">${maskAddress(customer.address)}</td>
+                    <td>${customer.jobs.length}</td>
+                    <td>$${customer.totalSpent.toFixed(2)}</td>
+                    <td>${new Date(customer.lastJobDate).toLocaleDateString()}</td>
+                    <td>
+                        <button class="action-btn review" onclick='openReviewModal(${JSON.stringify(customer)})'>
+                            📧 Send Review
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function updateDashboard() {
+            const now = new Date();
+            const currentMonth = now.getMonth();
+            const currentYear = now.getFullYear();
+
+            const monthJobs = jobs.filter(job => {
+                const jobDate = new Date(job.date);
+                return jobDate.getMonth() === currentMonth && jobDate.getFullYear() === currentYear;
+            });
+
+            const totalJobs = monthJobs.length;
+            const uniqueCustomers = new Set(monthJobs.map(j => j.phone)).size;
+            const totalGross = monthJobs.reduce((sum, job) => sum + job.gross, 0);
+            const totalProfit = monthJobs.reduce((sum, job) => sum + job.profit, 0);
+
+            document.getElementById('totalJobs').textContent = totalJobs;
+            document.getElementById('totalCustomers').textContent = uniqueCustomers;
+            document.getElementById('totalGross').textContent = `$${totalGross.toFixed(2)}`;
+            document.getElementById('totalProfit').textContent = `$${totalProfit.toFixed(2)}`;
+            document.getElementById('totalProfit').className = `stat-value ${totalProfit >= 0 ? 'profit' : 'loss'}`;
+        }
+
+        function filterJobs() {
+            const filterMonth = document.getElementById('jobFilterMonth').value;
+            if (!filterMonth) {
+                renderJobs();
+                return;
+            }
+
+            const [year, month] = filterMonth.split('-');
+            const filtered = jobs.filter(job => {
+                const jobDate = new Date(job.date);
+                return jobDate.getFullYear() === parseInt(year) && 
+                       jobDate.getMonth() === parseInt(month) - 1;
+            });
+
+            const tbody = document.getElementById('jobsTableBody');
+            if (filtered.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="10" class="empty-state">No jobs found for this month</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = filtered.map((job, displayIndex) => {
+                const originalIndex = jobs.indexOf(job);
+                return `
+                    <tr>
+                        <td>${new Date(job.date).toLocaleDateString()}</td>
+                        <td class="${privacyMode ? 'pii-masked' : ''}" title="${privacyMode ? 'Click eye icon to reveal' : ''}">${maskName(job.customerName)}</td>
+                        <td class="${privacyMode ? 'pii-masked' : ''}" title="${privacyMode ? 'Click eye icon to reveal' : ''}">${maskPhone(job.phone)}</td>
+                        <td class="${privacyMode ? 'pii-masked' : ''}" title="${privacyMode ? 'Click eye icon to reveal' : ''}">${maskAddress(job.address)}</td>
+                        <td>${job.marketingSource}</td>
+                        <td>$${job.gross.toFixed(2)}</td>
+                        <td>$${job.totalExpenses.toFixed(2)}</td>
+                        <td class="${job.profit >= 0 ? 'profit-positive' : 'profit-negative'}">
+                            $${job.profit.toFixed(2)}
+                        </td>
+                        <td class="${job.profit >= 0 ? 'profit-positive' : 'profit-negative'}">
+                            ${job.margin.toFixed(1)}%
+                        </td>
+                        <td>
+                            <div class="action-buttons">
+                                <button class="action-btn edit" onclick="editJob(${originalIndex})">Edit</button>
+                                <button class="action-btn delete" onclick="deleteJob(${originalIndex})">Delete</button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function filterCustomers() {
+            // Implement customer filtering if needed
+            renderCustomers();
+        }
+
+        function exportJobsToCSV() {
+            const filterMonth = document.getElementById('jobFilterMonth').value;
+            let exportJobs = jobs;
+            let filename = 'all_jobs.csv';
+
+            if (filterMonth) {
+                const [year, month] = filterMonth.split('-');
+                exportJobs = jobs.filter(job => {
+                    const jobDate = new Date(job.date);
+                    return jobDate.getFullYear() === parseInt(year) && 
+                           jobDate.getMonth() === parseInt(month) - 1;
+                });
+                filename = `jobs_${filterMonth}.csv`;
+            }
+
+            const headers = ['Date', 'Customer', 'Phone', 'Email', 'Address', 'Marketing Source', 
+                           'Gross', 'Dump Fee', 'Labor', 'Gas', 'U-Haul', 'Other Expenses', 
+                           'Total Expenses', 'Profit/Loss', 'Margin %'];
+            
+            const rows = exportJobs.map(job => [
+                job.date,
+                job.customerName,
+                job.phone,
+                job.email || '',
+                job.address,
+                job.marketingSource,
+                job.gross.toFixed(2),
+                job.expenses.dumpFee.toFixed(2),
+                job.expenses.labor.toFixed(2),
+                job.expenses.gas.toFixed(2),
+                job.expenses.uhaul.toFixed(2),
+                job.expenses.other.toFixed(2),
+                job.totalExpenses.toFixed(2),
+                job.profit.toFixed(2),
+                job.margin.toFixed(2)
+            ]);
+
+            const csv = [headers, ...rows].map(row => row.join(',')).join('\n');
+            downloadCSV(csv, filename);
+        }
+
+        function exportCustomersToCSV() {
+            const customersMap = new Map();
+
+            jobs.forEach(job => {
+                const key = job.phone;
+                if (!customersMap.has(key)) {
+                    customersMap.set(key, {
+                        name: job.customerName,
+                        phone: job.phone,
+                        email: job.email || '',
+                        address: job.address,
+                        jobCount: 0,
+                        totalSpent: 0,
+                        lastJobDate: job.date
+                    });
+                }
+
+                const customer = customersMap.get(key);
+                customer.jobCount++;
+                customer.totalSpent += job.gross;
+                if (job.date > customer.lastJobDate) {
+                    customer.lastJobDate = job.date;
+                }
+            });
+
+            const customers = Array.from(customersMap.values());
+            const headers = ['Name', 'Phone', 'Email', 'Address', 'Total Jobs', 'Total Spent', 'Last Job Date'];
+            const rows = customers.map(c => [
+                c.name,
+                c.phone,
+                c.email,
+                c.address,
+                c.jobCount,
+                c.totalSpent.toFixed(2),
+                c.lastJobDate
+            ]);
+
+            const csv = [headers, ...rows].map(row => row.join(',')).join('\n');
+            downloadCSV(csv, 'customers.csv');
+        }
+
+        function downloadCSV(csv, filename) {
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            a.click();
+            window.URL.revokeObjectURL(url);
+        }
+
+        // Review Modal
+        function openReviewModal(customer) {
+            document.getElementById('reviewCustomerName').value = customer.name;
+            document.getElementById('reviewCustomerPhone').value = customer.phone;
+            document.getElementById('reviewCustomerEmail').value = customer.email;
+            document.getElementById('reviewCustomerDisplay').value = `${customer.name} - ${customer.phone}`;
+            
+            updateReviewPreview();
+            document.getElementById('reviewModal').classList.add('show');
+        }
+
+        function closeReviewModal() {
+            document.getElementById('reviewModal').classList.remove('show');
+            document.getElementById('reviewForm').reset();
+        }
+
+        document.getElementById('reviewPlatform').addEventListener('change', updateReviewPreview);
+        document.getElementById('reviewMethod').addEventListener('change', updateReviewPreview);
+        document.getElementById('reviewLink').addEventListener('input', updateReviewPreview);
+
+        // Detect if user is on mobile
+        function isMobileDevice() {
+            return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        }
+
+        function updateReviewMethodUI() {
+            const method = document.getElementById('reviewMethod').value;
+            const smsProTip = document.getElementById('smsProTip');
+            const buttonsContainer = document.getElementById('sendButtonsContainer');
+            
+            // Show pro tip for SMS
+            if (method === 'sms') {
+                smsProTip.style.display = 'block';
+            } else {
+                smsProTip.style.display = 'none';
+            }
+
+            // Update buttons based on method and device
+            if (method === 'email') {
+                buttonsContainer.innerHTML = `
+                    <button type="button" class="btn btn-success" onclick="sendReviewEmail()" style="width: 100%;">
+                        📧 Copy Email Message
+                    </button>
+                `;
+            } else if (method === 'sms') {
+                if (isMobileDevice()) {
+                    buttonsContainer.innerHTML = `
+                        <button type="button" class="btn btn-success" onclick="openSMSApp()" style="width: 100%; margin-bottom: 10px;">
+                            📱 Open SMS App (Recommended)
+                        </button>
+                        <button type="button" class="btn btn-secondary" onclick="copySMSMessage()" style="width: 100%;">
+                            📋 Copy Message Instead
+                        </button>
+                    `;
+                } else {
+                    buttonsContainer.innerHTML = `
+                        <button type="button" class="btn btn-success" onclick="copySMSMessage()" style="width: 100%;">
+                            📋 Copy SMS Message
+                        </button>
+                        <div class="tip" style="margin-top: 10px;">
+                            💡 On mobile, we can auto-open your SMS app with the message pre-filled!
+                        </div>
+                    `;
+                }
+            } else {
+                buttonsContainer.innerHTML = '';
+            }
+
+            updateReviewPreview();
+        }
+
+        function updateReviewPreview() {
+            const platform = document.getElementById('reviewPlatform').value;
+            const method = document.getElementById('reviewMethod').value;
+            const link = document.getElementById('reviewLink').value;
+            const customerName = document.getElementById('reviewCustomerName').value;
+
+            if (!platform || !method) return;
+
+            const platformName = platform === 'google' ? 'Google' : 'Yelp';
+            
+            let message = '';
+            if (method === 'email') {
+                message = `Hi ${customerName},
+
+Thank you for choosing us for your junk removal! We hope you're enjoying your clean space.
+
+If you have a moment, we'd really appreciate it if you could leave us a review on ${platformName}. Your feedback helps us serve our community better.
+
+Leave a review here: ${link || '[Your review link will appear here]'}
+
+Thanks again!`;
+            } else {
+                message = `Hi ${customerName}! Thanks for choosing us. We'd love a ${platformName} review! ${link || '[Link]'}`;
+            }
+
+            document.getElementById('reviewPreview').value = message;
+        }
+
+        function openSMSApp() {
+            const phone = document.getElementById('reviewCustomerPhone').value;
+            const message = document.getElementById('reviewPreview').value;
+            
+            if (!phone) {
+                showMessage('reviewMessage', 'Customer phone number is missing.', 'error');
+                return;
+            }
+
+            // Clean phone number (remove non-digits)
+            const cleanPhone = phone.replace(/\D/g, '');
+            
+            // Open SMS app with pre-filled message
+            // Works on iOS and Android
+            const smsURL = `sms:${cleanPhone}${isMobileDevice() && /iPhone|iPad|iPod/i.test(navigator.userAgent) ? '&' : '?'}body=${encodeURIComponent(message)}`;
+            
+            window.location.href = smsURL;
+            
+            showMessage('reviewMessage', 
+                '📱 Opening your SMS app... Send the message when ready!', 
+                'success'
+            );
+            
+            setTimeout(() => {
+                closeReviewModal();
+            }, 2000);
+        }
+
+        function copySMSMessage() {
+            const message = document.getElementById('reviewPreview').value;
+            const phone = document.getElementById('reviewCustomerPhone').value;
+            
+            navigator.clipboard.writeText(message).then(() => {
+                showMessage('reviewMessage', 
+                    `📋 Message copied! Send to ${phone} via your SMS app.`, 
+                    'success'
+                );
+                
+                setTimeout(() => {
+                    closeReviewModal();
+                }, 2000);
+            });
+        }
+
+        function sendReviewEmail() {
+            const message = document.getElementById('reviewPreview').value;
+            const email = document.getElementById('reviewCustomerEmail').value;
+            
+            if (!email) {
+                showMessage('reviewMessage', 'This customer has no email on file.', 'error');
+                return;
+            }
+            
+            navigator.clipboard.writeText(message).then(() => {
+                showMessage('reviewMessage', 
+                    `📧 Email message copied! Send to ${email} via your email app.`, 
+                    'success'
+                );
+                
+                setTimeout(() => {
+                    closeReviewModal();
+                }, 2000);
+            });
+        }
+
+        function showMessage(elementId, text, type) {
+            const message = document.getElementById(elementId);
+            message.textContent = text;
+            message.className = `message ${type} show`;
+            setTimeout(() => {
+                message.classList.remove('show');
+            }, 5000);
+        }
+
+        // Initialize on load
+        renderJobs();
+        renderCustomers();
+        updateDashboard();
+
+        // PWA Service Worker
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js');
+        }
+    </script>
+</body>
+</html>
