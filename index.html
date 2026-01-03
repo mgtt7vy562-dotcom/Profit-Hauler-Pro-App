@@ -1105,7 +1105,7 @@
                                 📋 Copy Post
                             </button>
                             <button class="btn" onclick="shareToFacebook()" style="flex: 1; background: #1877f2;">
-                                📘 Share to Facebook
+                                📘 Copy & Open Facebook
                             </button>
                         </div>
                     </div>
@@ -1136,7 +1136,7 @@
                                 📋 Copy Post
                             </button>
                             <button class="btn" onclick="shareToTwitter()" style="flex: 1; background: #000000;">
-                                ✖️ Share to X
+                                ✖️ Copy & Open X
                             </button>
                         </div>
                     </div>
@@ -2244,8 +2244,14 @@ DM or call ${phone} for a free quote!`;
 
         function shareToFacebook() {
             const text = document.getElementById('facebookText').value;
-            const url = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}&quote=${encodeURIComponent(text)}`;
-            window.open(url, '_blank', 'width=600,height=400');
+            
+            // Copy the full post to clipboard
+            navigator.clipboard.writeText(text).then(() => {
+                showMessage('seoMessage', '📋 Facebook post copied! Paste it when Facebook opens.', 'success');
+            });
+            
+            // Open Facebook in new tab
+            window.open('https://www.facebook.com/', '_blank');
         }
 
         function shareToInstagram() {
@@ -2257,8 +2263,14 @@ DM or call ${phone} for a free quote!`;
 
         function shareToTwitter() {
             const text = document.getElementById('twitterText').value;
-            const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`;
-            window.open(url, '_blank', 'width=600,height=400');
+            
+            // Copy the full post to clipboard
+            navigator.clipboard.writeText(text).then(() => {
+                showMessage('seoMessage', '📋 X post copied! Paste it when X opens.', 'success');
+            });
+            
+            // Open X/Twitter in new tab
+            window.open('https://twitter.com/', '_blank');
         }
 
         function shareToNextdoor() {
