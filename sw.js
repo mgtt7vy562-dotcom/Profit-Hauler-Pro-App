@@ -1,8 +1,10 @@
-const CACHE_NAME = 'junk-post-gen-v1';
+const CACHE_NAME = 'profit-hauler-pro-v1';
 const urlsToCache = [
   '/',
-  '/seo-post-generator.html',
-  '/manifest.json'
+  '/index.html',
+  '/manifest.json',
+  '/icon-192.png',
+  '/icon-512.png'
 ];
 
 self.addEventListener('install', event => {
